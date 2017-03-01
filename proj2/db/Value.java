@@ -10,28 +10,26 @@ public class Value<T> implements Comparable<Value>{
     private DataType type;
     private T val;
 
-    public Value(int x) {
-        val = x;
-        type = DataType.INT;
+    public Value(T item) {
+        val = item;
+        if (val.getClass() == Integer.class) {
+            type = DataType.INT;
+        } else if (val.getClass() == Float.class) {
+            type = DataType.FLOAT;
+        } else {
+            type = DataType.STRING;
+        }
     }
 
-    public Value(float y) {
-        val = y;
-        type = DataType.FLOAT;
-    }
-
-    public Value(String s) {
-        val = s;
-        type = DataType.STRING;
-    }
-
-    /* Zero argument constructor used to create NOVALUEs
+    /* Zero argument constructor used to create NOVALUEs:
      * String -> '' (empty string)
      * int -> 0
      * float -> 0.0
+     * Also used to create NaN values. The val variable is
+     * irrelevant.
      */
-    public Value() {
-        type = DataType.NOVALUE;
+    public Value(DataType t) {
+        type = t;
     }
 
     public Object getVal() {
@@ -56,9 +54,9 @@ public class Value<T> implements Comparable<Value>{
         DataType t = v.type;
 
         if (t == DataType.FLOAT) {
-            return Float.compare((float) val, (float) v.getVal());
+            return Float.compare((Float) val, (Float) v.getVal());
         } else if (t == DataType.INT) {
-            return Integer.compare((int) val, (int) v.getVal());
+            return Integer.compare((Integer) val, (Integer) v.getVal());
         } else if (t == DataType.STRING) {
             return ((String) val).compareTo((String) v.getVal());
         } else if ( t == DataType.NaN) {
