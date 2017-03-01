@@ -5,10 +5,10 @@ package db;
  */
 
 // Interface for doing operations on Value objects
-public interface ValueOperator {
+public interface ValueOperator<T> {
 
     // Apply some arbitrary operation on two values
-    Value apply(Value v1, Value v2);
+    Value apply(Value<T> v1, Value<T> v2);
 
     /* Determines what the type of a new value will be based on what
        is supplied into the methods:

@@ -17,14 +17,14 @@ public enum ValueArithmetic implements ValueOperator{
             DataType newType = getResultingType(t1, t2);
 
             if (newType.equals(DataType.FLOAT)) {
-                Float val = (Float) v1.getVal() + (Float) v2.getVal();
-                return new Value(val);
+                Float val = Float (v1.getVal() + v2.getVal());
+                return new Value<>(val);
             } else if (newType.equals(DataType.INT)) {
                 Integer val = (Integer) v1.getVal() + (Integer) v2.getVal();
-                return new Value(val);
+                return new Value<>(val);
             } else {
                 String val = v1.getVal() + (String) v2.getVal();
-                return new Value(val);
+                return new Value<>(val);
             }
         }
 
@@ -39,10 +39,10 @@ public enum ValueArithmetic implements ValueOperator{
 
             if (newType.equals(DataType.FLOAT)) {
                 Float val = (Float) v1.getVal() - (Float) v2.getVal();
-                return new Value(val);
+                return new Value<>(val);
             } else {
                 Integer val = (Integer) v1.getVal() - (Integer) v2.getVal();
-                return new Value(val);
+                return new Value<>(val);
             }
         }
     },
@@ -56,10 +56,10 @@ public enum ValueArithmetic implements ValueOperator{
 
             if (newType.equals(DataType.FLOAT)) {
                 Float val = (Float) v1.getVal() * (Float) v2.getVal();
-                return new Value(val);
+                return new Value<>(val);
             } else {
                 Integer val = (Integer) v1.getVal() * (Integer) v2.getVal();
-                return new Value(val);
+                return new Value<>(val);
             }
         }
     },
@@ -75,20 +75,18 @@ public enum ValueArithmetic implements ValueOperator{
                 Float val;
                 try {
                     val = (Float) v1.getVal() / (Float) v2.getVal();
+                    return new Value<>(val);
                 } catch (ArithmeticException e) {
-                    val = Float.MAX_VALUE;
-                    newType = DataType.NaN;
+                    return new Value<>(DataType.NaN);
                 }
-                return new Value(val, newType);
             } else {
                 Integer val;
                 try {
                     val = (Integer) v1.getVal() / (Integer) v2.getVal();
+                    return new Value<>(val);
                 } catch (ArithmeticException e) {
-                    val = Integer.MAX_VALUE;
-                    newType = DataType.NaN;
+                    return new Value<>(DataType.NaN);
                 }
-                return new Value<>(val, newType);
             }
         }
     }
