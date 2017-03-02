@@ -8,10 +8,4 @@ public enum DataType {
 
     INT, FLOAT, STRING, NaN, NOVALUE;
 
-    public boolean equals(DataType t) {
-        if (t == NOVALUE || this == NOVALUE) {
-            return false;
-        }
-        return t == this;
-    }
 }
