@@ -23,7 +23,14 @@ public abstract class ValueOperation extends NumberFunction {
             float item = (float) func(v1.getNum(), v2.getNum());
             return new Value(item);
         } else if (result == Int) {
-            int item = (int) func(v1.getNum(), v2.getNum());
+            int item;
+            if (t1 == NoValue) {
+                item = (int) func(0, v2.getNum());
+            } else if (t2 == NoValue) {
+                item = (int) func(v1.getNum(), 0);
+            } else {
+                item = (int) func(v1.getNum(), v2.getNum());
+            }
             return new Value(item);
         } else if (result == String) {
             String item = v1.getString() + v2.getString();
@@ -63,9 +70,7 @@ public abstract class ValueOperation extends NumberFunction {
         if (t1 == NaN || t2 == NaN) {
             // Operations with NaN result in NaN
             return NaN;
-        } else if ((t1 == Int && t2 == Float) ||
-                (t1 == Float && t2 == Int) ||
-                (t1 == Float && t2 == Float)) {
+        } else if (t1 == Float || t2 == Float) {
             // Operations with at least one float results in a float
             return Float;
         } else if (t1 == Int && t2 == Int) {
