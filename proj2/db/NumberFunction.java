@@ -12,7 +12,7 @@ abstract class NumberFunction implements BasicFunction {
         } else if (x.getClass() == Float.class && y.getClass() == Integer.class) {
             return floatAndInt((float) x, (int) y);
         } else if (x.getClass() == Float.class && x.getClass() == y.getClass()) {
-            return twoFloats((float) x, (int) y);
+            return twoFloats((float) x, (float) y);
         } else {
             return twoInts((int) x, (int) y);
         }

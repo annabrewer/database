@@ -56,6 +56,9 @@ public class Value implements Comparable<Value>{
     public Value(DataType t, Class c) {
         type = t;
         itemClass = c;
+        if (itemClass == String.class) {
+            string = "";
+        }
     }
 
     private int getInteger() {
