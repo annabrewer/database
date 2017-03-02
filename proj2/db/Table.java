@@ -7,6 +7,7 @@ import java.util.Arrays;
  */
 public class Table {
     public String name;
+    public String stringRep;
 
     public Object[][] cols;
     //an array of arrays,
@@ -24,7 +25,21 @@ public class Table {
             col[0] = colsInput[Arrays.asList(cols).indexOf(col)]; //if this is being shitty just use a regular for loop
         }
     }
-    //create selected
-    public Table()
+    //load
+    public Table(String nameInput, ArrayList<ArrayList<Object>> rowsInput) {
+        //now both are pointing to columns object
+        name = nameInput;
+        cols = new Object[colsInput.length][2];
+        for (Object[] col : cols) {
+            col[0] = colsInput[Arrays.asList(cols).indexOf(col)]; //if this is being shitty just use a regular for loop
+        }
+    }
 
+    public static Table join(expressionsInput, tablesInput, conditionsInput) {
+
+    }
+
+    public Table insert() {
+
+    }
 }

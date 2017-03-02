@@ -45,7 +45,7 @@ public class Parser {
 
     //need constructor for anything???
 
-    public static void eval(String query) {
+    public static Object[] eval(String query) {
         Matcher m;
         if ((m = CREATE_CMD.matcher(query)).matches()) {
             return createTable(m.group(1));
@@ -73,12 +73,13 @@ public class Parser {
             Object[] result = {"create new", m.group(1), m.group(2).split(COMMA)};
             return result;
         } else if ((m = CREATE_SEL.matcher(expr)).matches()) {
-            //index 1: name, index 2: expressions, index 3: tables, index 4: columns
+            //index 1: name, index 2: expressions(cols), index 3: tables, index 4: conds
             //not sure if the split comma thing is correct but i think it is
             Object[] result = {"create selected", m.group(1), m.group(2).split(COMMA), m.group(3).split(COMMA), m.group(4).split(COMMA)};
             return result;
         } else {
             System.err.printf("Malformed create: %s\n", expr);
+            return {}; //i guess????
         }
     }
 
@@ -103,8 +104,8 @@ public class Parser {
             System.err.printf("Malformed insert: %s\n", expr);
             return;
         }
-        //index 1 is row to be inserted, index 2 is table
-        Object[] result = {"insert", m.group(2), m.group(1)};
+        //index 1 is table, index 2 is row to be inserted
+        Object[] result = {"insert", m.group(1), m.group(2)};
         return result;
     }
 
