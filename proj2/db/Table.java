@@ -1,45 +1,37 @@
 package db;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  * Created by Anna on 2/28/17.
  */
 public class Table {
-    public String name;
-    public String stringRep;
 
-    public Object[][] cols;
-    //an array of arrays,
-    //each containing the column name at index 0
-    //and an arraylist of values at index 1
+    String stringRep;
+    HashMap<String, Column> cols = new HashMap<String, db.Column>(); //are Column and Row the class names??
+    ArrayList<Row> rows = new ArrayList<Row>(); //need to instantiate here?
 
-    public ArrayList<ArrayList<Object>> rows;
-
-    //create new
-    public Table(String nameInput, String[] colsInput) {
-        //now both are pointing to columns object
-        name = nameInput;
-        cols = new Object[colsInput.length][2];
-        for (Object[] col : cols) {
-            col[0] = colsInput[Arrays.asList(cols).indexOf(col)]; //if this is being shitty just use a regular for loop
-        }
-    }
-    //load
-    public Table(String nameInput, ArrayList<ArrayList<Object>> rowsInput) {
-        //now both are pointing to columns object
-        name = nameInput;
-        cols = new Object[colsInput.length][2];
-        for (Object[] col : cols) {
-            col[0] = colsInput[Arrays.asList(cols).indexOf(col)]; //if this is being shitty just use a regular for loop
-        }
-    }
-
-    public static Table join(expressionsInput, tablesInput, conditionsInput) {
+    //new table: takes in list of column names
+    public Table (String[] columnNames) {
 
     }
 
-    public Table insert() {
+    //load: takes in list of rows
+    public Table (ArrayList<Row> rowsInput) {
 
     }
+
+    public void insert(Row r) {
+
+    }
+
+    public static void join() {
+
+    }
+
+    //helper
+    public void updateStringRep() {
+
+    }
+
 }
