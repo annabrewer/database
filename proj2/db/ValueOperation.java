@@ -4,7 +4,7 @@ package db;
  * Created by Thaniel on 2/27/2017.
  */
 
-// Interface that applies operations onto Value objects
+// Abstract class that applies operations onto Value objects
 public abstract class ValueOperation extends NumberFunction {
 
     private DataType Int = DataType.INT;
@@ -41,7 +41,7 @@ public abstract class ValueOperation extends NumberFunction {
     }
 
     // Special handling for values that are NaN or NOVALUE
-    Value specialValues(Value v1, Value v2) {
+    private Value specialValues(Value v1, Value v2) {
         Class c1 = v1.getItemClass();
         Class c2 = v2.getItemClass();
         DataType result = getResultingType(v1.getType(), v2.getType());

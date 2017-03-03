@@ -1,5 +1,7 @@
 package db;
 
+import com.sun.prism.shader.FillCircle_LinearGradient_PAD_AlphaTest_Loader;
+
 import java.math.BigDecimal;
 
 /**
@@ -61,6 +63,19 @@ public class Value implements Comparable<Value>{
         }
     }
 
+    // Change this value to the one given
+    /*public void changeValue(Value v) {
+        type = v.getType();
+        itemClass = v.getItemClass();
+        if (itemClass == Integer.class) {
+            integer = v.getInteger();
+        } else if (itemClass == Float.class) {
+            aFloat = v.getFloat();
+        } else {
+            string = v.getString();
+        }
+    }*/
+
     private int getInteger() {
         return integer;
     }
@@ -111,59 +126,82 @@ public class Value implements Comparable<Value>{
         }
     }
 
-    /* if compared to a NOVALUE, returns a random positive int
+    /* if compared to a NOVALUE, returns a random negative int
      * only values of the same type can be compared
      * anything compared to a NaN that isn't a NaN is always
      * smaller than the NaN
-     * incorrect comparisons across different data types is
-     * handled during parsing
+     * incorrect comparisons across numbers and strings is
+     * handled during parsing.
      */
+
     @Override
     public int compareTo(Value v) {
-        DataType t = v.type;
+        DataType t = v.getType();
 
-        if (t == DataType.FLOAT) {
-            return Float.compare(aFloat, v.getFloat());
-        } else if (t == DataType.INT) {
-            return Integer.compare(integer, v.getInteger());
-        } else if (t == DataType.STRING) {
-            return string.compareTo(v.getString());
-        } else if (t == DataType.NaN) {
-            if (type == t) {
+        if (t == DataType.NOVALUE || type == DataType.NOVALUE) {
+            return -69;
+        } else if (type == DataType.NaN) {
+            if (t == type) {
                 return 0;
+            } else {
+                return 1;
             }
-            return 1;
+        } else if (t == DataType.NaN && type != DataType.STRING) {
+            return -1;
+        } else if (type == DataType.FLOAT && t == DataType.INT) {
+            return compareFloatAndInt(aFloat, v.getInteger());
+        } else if (type == DataType.INT && t == DataType.FLOAT) {
+            return compareIntAndFloat(integer, v.getFloat());
+        } else if (type == DataType.INT && t == type) {
+            return Integer.compare(integer, v.getInteger());
+        } else if (type == DataType.FLOAT && t == type) {
+            return Float.compare(aFloat, v.getFloat());
         } else {
-            return 69; // :^)
+            return string.compareTo(v.getString());
         }
     }
 
-    // Various comparing methods
+    // Directly compare ints and floats
+    private int compareIntAndFloat(int x, float y) {
+        if (x < y) {
+            return -1;
+        } else if (x == y) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
+    private int compareFloatAndInt(float x, int y) {
+        if (x < y) {
+            return -1;
+        } else if (x == y) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
+    /* Various comparing methods */
+
     public boolean equals(Value v) {
-        return v.compareTo(v) == 0;
+        return compareTo(v) == 0;
     }
 
     public boolean greaterThan(Value v) {
-        if (v.type == DataType.NOVALUE || type == DataType.NOVALUE) {
-            return false;
-        } else {
-            return compareTo(v) > 0;
-        }
+        int result = compareTo(v);
+        return result > 0;
     }
 
     public boolean lessThan(Value v) {
-        if (v.type == DataType.NOVALUE || type == DataType.NOVALUE) {
-            return false;
-        } else {
-            return compareTo(v) < 0;
-         }
+        int result = compareTo(v);
+        return result < 0 && result != -69;
     }
 
     public static void main(String[] args) {
-        Value x = new Value(1.0f);
-        Value y = new Value(69);
-        ValueOperation add = new Add();
-        Value z = add.apply(x, y);
-        System.out.println(z);
+        Value v1 = new Value(DataType.NOVALUE, Integer.class);
+        Value v2 = new Value(94.258f);
+        System.out.println(v1.equals(v2));
+
     }
 }
