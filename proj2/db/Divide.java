@@ -7,11 +7,6 @@ public class Divide extends ValueOperation {
 
     @Override
     public Value apply(Value v1, Value v2) {
-        /*try {
-            return super.apply(v1, v2);
-        } catch (ArithmeticException zeroDivision) {
-            return specialValues(v1, v2);
-        }*/
         if (v2.getType() == DataType.NOVALUE) {
             Class type;
             if (v1.getItemClass() == Float.class || v2.getItemClass() == Float.class) {
@@ -20,6 +15,14 @@ public class Divide extends ValueOperation {
                 type = Integer.class;
             }
             return new Value(DataType.NaN, type);
+        } else if (v2.equals(new Value(0))) {
+            if (v1.getItemClass() == Integer.class) {
+                return new Value(DataType.NaN, Integer.class);
+            } else {
+                return new Value(DataType.NaN, Float.class);
+            }
+        } else if (v2.equals(new Value(0f))) {
+            return new Value(DataType.NaN, Float.class);
         } else {
             return super.apply(v1, v2);
         }
