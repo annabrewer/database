@@ -39,15 +39,25 @@ public class Column {
         return values;
     }
 
-    public String getName() {
-        return name;
-    }
-
     public Class getColumnType() {
         return columnType;
     }
 
-    public static void main(String[] args) {
+    public String getColumnName() {
+        String type;
+        if (columnType == Integer.class) {
+            type = "int";
+        } else if (columnType == Float.class) {
+            type = "float";
+        } else {
+            type = "string";
+        }
 
+        return name + " " + type;
+    }
+
+    public static void main(String[] args) {
+        Column c = new Column("x", Integer.class);
+        System.out.print(c.getColumnName());
     }
 }
