@@ -18,7 +18,7 @@ public class Column {
         columnType = t;
     }
 
-    // Create a column from a list of values
+    // Create a column from a list of values. Inputted list shouldn't be empty.
     public Column(String n, ArrayList<Value> vals) {
         values = vals;
         name = n;
@@ -48,12 +48,6 @@ public class Column {
     }
 
     public static void main(String[] args) {
-        ArrayList<Value> numbers = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            numbers.add(new Value(i));
-        }
-        Column c = new Column("numbers", numbers);
-        ArrayList<Value> filtered = new LessThan().apply(c, new Value(1.5f));
-        System.out.println(filtered);
+
     }
 }
