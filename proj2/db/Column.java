@@ -14,15 +14,27 @@ public class Column {
 
     // Create an empty column
     public Column(String n, Class t) {
-        name = n;
+        if (t == Integer.class) {
+            name = n + " " + "int";
+        } else if (t == Float.class) {
+            name = n + " " + "float";
+        } else {
+            name = n + " " + "string";
+        }
         columnType = t;
     }
 
     // Create a column from a list of values. Inputted list shouldn't be empty.
     public Column(String n, ArrayList<Value> vals) {
         values = vals;
-        name = n;
         columnType = vals.get(0).getItemClass();
+        if (columnType == Integer.class) {
+            name = n + " " + "int";
+        } else if (columnType == Float.class) {
+            name = n + " " + "float";
+        } else {
+            name = n + " " + "string";
+        }
     }
 
     /* Add a value to a column. This is never called directly,
@@ -44,16 +56,7 @@ public class Column {
     }
 
     public String getColumnName() {
-        String type;
-        if (columnType == Integer.class) {
-            type = "int";
-        } else if (columnType == Float.class) {
-            type = "float";
-        } else {
-            type = "string";
-        }
-
-        return name + " " + type;
+        return name;
     }
 
     public static void main(String[] args) {
