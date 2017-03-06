@@ -103,14 +103,15 @@ public class Table {
         ArrayList<String> otherCols = t2.columnNames;
         ArrayList<String> shared = new ArrayList<>();
 
-        Iterator<String> namesIterator = otherCols.iterator();
-        for (String col : t1.columnNames) {
-            String otherCol = namesIterator.next();
-            Class c1 = t1.columnTypes.get(col);
-            Class c2 = t2.columnTypes.get(otherCol);
+        for (String col1 : t1.columnNames) {
+            Class c1 = t1.columnTypes.get(col1);
 
-            if (col.equals(otherCol) && c1.equals(c2)) {
-                shared.add(col);
+            for (String col2 : otherCols) {
+                Class c2 = t2.columnTypes.get(col2);
+
+                if (col1.equals(col2) && c1.equals(c2)) {
+                    shared.add(col1);
+                }
             }
         }
 
@@ -147,10 +148,14 @@ public class Table {
         }
 
         for (String col : t1.columnNames) {
-            columnsInfo.put(col, t1.columnTypes.get(col));
+            if (!shared.contains(col)) {
+                columnsInfo.put(col, t1.columnTypes.get(col));
+            }
         }
         for (String col : t2.columnNames) {
-            columnsInfo.put(col, t2.columnTypes.get(col));
+            if (!shared.contains(col)) {
+                columnsInfo.put(col, t2.columnTypes.get(col));
+            }
         }
 
         return columnsInfo;
@@ -188,24 +193,48 @@ public class Table {
 
     }*/
     public static void main(String[] args) {
-        ArrayList<String> names = new ArrayList<>();
-        Collections.addAll(names, "x", "y", "z", "w");
-        LinkedHashMap<String, Class> colInfo = new LinkedHashMap<>();
-        for (String n : names) {
-            colInfo.put(n, Integer.class);
+        ArrayList<String> n1 = new ArrayList<>();
+        Collections.addAll(n1, "x", "y");
+        LinkedHashMap<String, Class> colInfo1 = new LinkedHashMap<>();
+        for (String n : n1) {
+            colInfo1.put(n, Integer.class);
         }
         ArrayList<Value> v1 = new ArrayList<>();
         ArrayList<Value> v2 = new ArrayList<>();
         ArrayList<Value> v3 = new ArrayList<>();
-        Collections.addAll(v1, new Value(1), new Value(7), new Value(2), new Value(10));
-        Collections.addAll(v2, new Value(7), new Value(7), new Value(4), new Value(1));
-        Collections.addAll(v3, new Value(1), new Value(9), new Value(9), new Value(1));
+        Collections.addAll(v1, new Value(1), new Value(7));
+        Collections.addAll(v2, new Value(7), new Value(7));
+        Collections.addAll(v3, new Value(1), new Value(9));
 
-        Table t1 = new Table("test", colInfo);
-        t1.insertValues(new Row(names, v1));
-        t1.insertValues(new Row(names, v2));
-        t1.insertValues(new Row(names, v3));
+        Table t1 = new Table("test1", colInfo1);
+        t1.insertValues(new Row(n1, v1));
+        t1.insertValues(new Row(n1, v2));
+        t1.insertValues(new Row(n1, v3));
         t1.print();
+
+        ArrayList<String> n2 = new ArrayList<>();
+        Collections.addAll(n2, "a", "b");
+        LinkedHashMap<String, Class> colInfo2 = new LinkedHashMap<>();
+        for (String n : n2) {
+            colInfo2.put(n, Integer.class);
+        }
+        ArrayList<Value> val1 = new ArrayList<>();
+        ArrayList<Value> val2 = new ArrayList<>();
+        ArrayList<Value> val3 = new ArrayList<>();
+        //ArrayList<Value> val4 = new ArrayList<>();
+        Collections.addAll(val1, new Value(3), new Value(8));
+        Collections.addAll(val2, new Value(4), new Value(9));
+        Collections.addAll(val3, new Value(5), new Value(10));
+        //Collections.addAll(val4, new Value(1), new Value(11), new Value(9));
+        Table t2 = new Table("test2", colInfo2);
+        t2.insertValues(new Row(n2, val1));
+        t2.insertValues(new Row(n2, val2));
+        t2.insertValues(new Row(n2, val3));
+        //t2.insertValues(new Row(n2, val4));
+        t2.print();
+
+        Table t3 = Table.join(t1, t2, "result");
+        t3.print();
     }
 
 

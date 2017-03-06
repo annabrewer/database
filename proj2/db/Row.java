@@ -130,6 +130,7 @@ public class Row {
     public static Row merge(Row r1, Row r2, ArrayList<String> sharedCols) {
         ArrayList<String> cols = new ArrayList<>();
         ArrayList<Value> vals = new ArrayList<>();
+
         LinkedHashMap<String, Value> shared = sharedValues(r1, r2, sharedCols);
 
         cols.addAll(sharedCols);
@@ -145,6 +146,9 @@ public class Row {
                 cols.add(c);
                 vals.add(r2.values.get(c));
             }
+        }
+        if (shared.size() != sharedCols.size()) {
+            return new Row(cols);
         }
 
         return new Row(cols, vals);
