@@ -11,33 +11,12 @@ public enum Conditionals implements ColumnConditional {
     LESS_THAN {
         @Override
         public ArrayList<Value> apply(Column c, Value v) {
-            ArrayList<Value> filteredValues = new ArrayList<>();
-
-            for (Value val : c.getValues()) {
-                if (val.lessThan(v)) {
-                    filteredValues.add(val);
-                }
-            }
-
-            return filteredValues;
+            return apply(c, v, ValueComparatorFunction.LESS_THAN);
         }
 
         @Override
         public ArrayList<Value> applyTwoColumns(Column c1, Column c2) {
-            ArrayList<Value> filteredValues = new ArrayList<>();
-            ArrayList<Value> vals1 = c1.getValues();
-            ArrayList<Value> vals2 = c2.getValues();
-
-            for (int i = 0; i < vals1.size(); i++) {
-                Value v1 = vals1.get(i);
-                Value v2 = vals2.get(i);
-
-                if (v1.lessThan(v2)) {
-                    filteredValues.add(v1);
-                }
-            }
-
-            return filteredValues;
+            return applyTwoColumns(c1, c2, ValueComparatorFunction.LESS_THAN);
         }
     },
 
@@ -45,33 +24,12 @@ public enum Conditionals implements ColumnConditional {
     LESS_OR_EQUAL_TO {
         @Override
         public ArrayList<Value> apply(Column c, Value v) {
-            ArrayList<Value> filteredValues = new ArrayList<>();
-
-            for (Value val : c.getValues()) {
-                if (val.lessThan(v) || val.equals(v)) {
-                    filteredValues.add(val);
-                }
-            }
-
-            return filteredValues;
+            return apply(c, v, ValueComparatorFunction.LESS_OR_EQUAL_TO);
         }
 
         @Override
         public ArrayList<Value> applyTwoColumns(Column c1, Column c2) {
-            ArrayList<Value> filteredValues = new ArrayList<>();
-            ArrayList<Value> vals1 = c1.getValues();
-            ArrayList<Value> vals2 = c2.getValues();
-
-            for (int i = 0; i < vals1.size(); i++) {
-                Value v1 = vals1.get(i);
-                Value v2 = vals2.get(i);
-
-                if (v1.lessThan(v2) || v1.equals(v2)) {
-                    filteredValues.add(v1);
-                }
-            }
-
-            return filteredValues;
+            return applyTwoColumns(c1, c2, ValueComparatorFunction.LESS_OR_EQUAL_TO);
         }
     },
 
@@ -79,33 +37,12 @@ public enum Conditionals implements ColumnConditional {
     EQUALS {
         @Override
         public ArrayList<Value> apply(Column c, Value v) {
-            ArrayList<Value> filteredValues = new ArrayList<>();
-
-            for (Value val : c.getValues()) {
-                if (val.equals(v)) {
-                    filteredValues.add(val);
-                }
-            }
-
-            return filteredValues;
+            return apply(c, v, ValueComparatorFunction.EQUALS);
         }
 
         @Override
         public ArrayList<Value> applyTwoColumns(Column c1, Column c2) {
-            ArrayList<Value> filteredValues = new ArrayList<>();
-            ArrayList<Value> vals1 = c1.getValues();
-            ArrayList<Value> vals2 = c2.getValues();
-
-            for (int i = 0; i < vals1.size(); i++) {
-                Value v1 = vals1.get(i);
-                Value v2 = vals2.get(i);
-
-                if (v1.equals(v2)) {
-                    filteredValues.add(v1);
-                }
-            }
-
-            return filteredValues;
+            return applyTwoColumns(c1, c2, ValueComparatorFunction.EQUALS);
         }
     },
 
@@ -113,33 +50,12 @@ public enum Conditionals implements ColumnConditional {
     GREATER_THAN {
         @Override
         public ArrayList<Value> apply(Column c, Value v) {
-            ArrayList<Value> filteredValues = new ArrayList<>();
-
-            for (Value val : c.getValues()) {
-                if (val.greaterThan(v)) {
-                    filteredValues.add(val);
-                }
-            }
-
-            return filteredValues;
+            return apply(c, v, ValueComparatorFunction.GREATER_THAN);
         }
 
         @Override
         public ArrayList<Value> applyTwoColumns(Column c1, Column c2) {
-            ArrayList<Value> filteredValues = new ArrayList<>();
-            ArrayList<Value> vals1 = c1.getValues();
-            ArrayList<Value> vals2 = c2.getValues();
-
-            for (int i = 0; i < vals1.size(); i++) {
-                Value v1 = vals1.get(i);
-                Value v2 = vals2.get(i);
-
-                if (v1.greaterThan(v2)) {
-                    filteredValues.add(v1);
-                }
-            }
-
-            return filteredValues;
+            return applyTwoColumns(c1, c2, ValueComparatorFunction.GREATER_THAN);
         }
     },
 
@@ -147,33 +63,12 @@ public enum Conditionals implements ColumnConditional {
     GREATER_OR_EQUAL_TO {
         @Override
         public ArrayList<Value> apply(Column c, Value v) {
-            ArrayList<Value> filteredValues = new ArrayList<>();
-
-            for (Value val : c.getValues()) {
-                if (val.greaterThan(v) || val.equals(v)) {
-                    filteredValues.add(val);
-                }
-            }
-
-            return filteredValues;
+            return apply(c, v, ValueComparatorFunction.GREATER_OR_EQUAL_TO);
         }
 
         @Override
         public ArrayList<Value> applyTwoColumns(Column c1, Column c2) {
-            ArrayList<Value> filteredValues = new ArrayList<>();
-            ArrayList<Value> vals1 = c1.getValues();
-            ArrayList<Value> vals2 = c2.getValues();
-
-            for (int i = 0; i < vals1.size(); i++) {
-                Value v1 = vals1.get(i);
-                Value v2 = vals2.get(i);
-
-                if (v1.greaterThan(v2) || v1.equals(v2)) {
-                    filteredValues.add(v1);
-                }
-            }
-
-            return filteredValues;
+            return applyTwoColumns(c1, c2, ValueComparatorFunction.GREATER_OR_EQUAL_TO);
         }
     }
 }
