@@ -61,8 +61,8 @@ public class Row {
      */
     public Row(ArrayList<Column> cols, int index) {
         for (Column c : cols) {
-            columns.add(c.getColumnName());
-            values.put(c.getColumnName(), c.getValueInRow(index));
+            columns.add(c.getNameWithType());
+            values.put(c.getNameWithType(), c.getValueInRow(index));
         }
     }
 
