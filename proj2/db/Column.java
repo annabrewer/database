@@ -8,7 +8,7 @@ import java.util.ArrayList;
 // Column of values we can input into our table
 public class Column {
 
-    private ArrayList<Value> values;
+    private ArrayList<Value> values = new ArrayList<>();
     private String name;
     private Class columnType;
 
@@ -29,7 +29,7 @@ public class Column {
     /* Add a value to a column. This is never called directly,
      *  since tables are constructed row-wise.
      */
-    private void addValue(Value v) {
+    public void addValue(Value v) {
         values.add(v);
     }
 

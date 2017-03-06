@@ -1,5 +1,8 @@
 package db;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 /**
  * Created by Thaniel on 2/28/2017.
  */
@@ -54,6 +57,21 @@ public enum Arithmetic implements ColumnFunction {
         @Override
         public Column apply(Column c, Value v, String n) {
             return apply(new Divide(), c, v, n);
+        }
+    };
+
+    public static void main(String[] args) {
+        ArrayList<Value> v1 = new ArrayList<>();
+        Collections.addAll(v1, new Value(DataType.NaN, Float.class), new Value(7.802f), new Value(4.956f));
+        ArrayList<Value> v2 = new ArrayList<>();
+        Collections.addAll(v2, new Value(DataType.NOVALUE, Float.class), new Value(6.741f), new Value(DataType.NOVALUE, Float.class));
+
+        Column c1 = new Column("t1", v1);
+        Column c2 = new Column("t2", v2);
+
+        Column c3 = Arithmetic.SUBTRACT.apply(c1, c2, "t3");
+        for (Value v : c3.getValues()) {
+            System.out.print(v.toString() + " ");
         }
     }
 
