@@ -4,90 +4,56 @@ package db;
  * Created by Thaniel on 2/28/2017.
  */
 
-/* Defines the different operations we can do with Value objects:
-   add(supports concatenation for strings), subtract, multiply, and divide
+/* Defines the specific behavior of performing operations on columns
+ * with a given value, or performing operations using two columns.
  */
 
-public enum ValueArithmetic implements ValueOperator{
+public enum Arithmetic implements ColumnFunction {
+
     ADD {
         @Override
-        public Value apply(Value v1, Value v2) {
-            DataType t1 = v1.getType();
-            DataType t2 = v2.getType();
-            DataType newType = getResultingType(t1, t2);
-
-            if (newType.equals(DataType.FLOAT)) {
-                Float val = Float (v1.getVal() + v2.getVal());
-                return new Value<>(val);
-            } else if (newType.equals(DataType.INT)) {
-                Integer val = (Integer) v1.getVal() + (Integer) v2.getVal();
-                return new Value<>(val);
-            } else {
-                String val = v1.getVal() + (String) v2.getVal();
-                return new Value<>(val);
-            }
+        public Column apply(Column c1, Column c2, String n) {
+            return applyTwoColumns(new Add(), c1, c2, n);
         }
 
-    },
+        @Override
+        public Column apply(Column c, Value v, String n) {
+            return apply(new Add(), c, v, n);
+        }
 
+
+    },
     SUBTRACT {
         @Override
-        public Value apply(Value v1, Value v2) {
-            DataType t1 = v1.getType();
-            DataType t2 = v2.getType();
-            DataType newType = getResultingType(t1, t2);
+        public Column apply(Column c1, Column c2, String n) {
+            return applyTwoColumns(new Subtract(), c1, c2, n);
+        }
 
-            if (newType.equals(DataType.FLOAT)) {
-                Float val = (Float) v1.getVal() - (Float) v2.getVal();
-                return new Value<>(val);
-            } else {
-                Integer val = (Integer) v1.getVal() - (Integer) v2.getVal();
-                return new Value<>(val);
-            }
+        @Override
+        public Column apply(Column c, Value v, String n) {
+            return apply(new Subtract(), c, v, n);
         }
     },
-
     MULTIPLY {
         @Override
-        public Value apply(Value v1, Value v2) {
-            DataType t1 = v1.getType();
-            DataType t2 = v2.getType();
-            DataType newType = getResultingType(t1, t2);
+        public Column apply(Column c1, Column c2, String n) {
+            return applyTwoColumns(new Multiply(), c1, c2, n);
+        }
 
-            if (newType.equals(DataType.FLOAT)) {
-                Float val = (Float) v1.getVal() * (Float) v2.getVal();
-                return new Value<>(val);
-            } else {
-                Integer val = (Integer) v1.getVal() * (Integer) v2.getVal();
-                return new Value<>(val);
-            }
+        @Override
+        public Column apply(Column c, Value v, String n) {
+            return apply(new Multiply(), c, v, n);
         }
     },
-
     DIVIDE {
         @Override
-        public Value apply(Value v1, Value v2) {
-            DataType t1 = v1.getType();
-            DataType t2 = v2.getType();
-            DataType newType = getResultingType(t1, t2);
+        public Column apply(Column c1, Column c2, String n) {
+            return applyTwoColumns(new Divide(), c1, c2, n);
+        }
 
-            if (newType.equals(DataType.FLOAT)) {
-                Float val;
-                try {
-                    val = (Float) v1.getVal() / (Float) v2.getVal();
-                    return new Value<>(val);
-                } catch (ArithmeticException e) {
-                    return new Value<>(DataType.NaN);
-                }
-            } else {
-                Integer val;
-                try {
-                    val = (Integer) v1.getVal() / (Integer) v2.getVal();
-                    return new Value<>(val);
-                } catch (ArithmeticException e) {
-                    return new Value<>(DataType.NaN);
-                }
-            }
+        @Override
+        public Column apply(Column c, Value v, String n) {
+            return apply(new Divide(), c, v, n);
         }
     }
 
