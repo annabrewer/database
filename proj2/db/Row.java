@@ -2,7 +2,6 @@ package db;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
@@ -118,6 +117,10 @@ public class Row {
         }
 
         return returnString.toString();
+    }
+
+    boolean isEmpty() {
+        return values.values().isEmpty();
     }
 
     /* Merges r1 with r2. Rows that share columns but don't share any
