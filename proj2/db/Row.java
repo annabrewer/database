@@ -76,11 +76,6 @@ public class Row {
         return values.get(columnName);
     }
 
-    // Returns true if the given value is in this row
-    public boolean contains(Value v) {
-        return getRowValues().contains(v);
-    }
-
     /* Returns a new row containing values from the inputted columns
      * Assumes this row has the columns provided.
      */
