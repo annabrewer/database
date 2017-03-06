@@ -43,8 +43,8 @@ public class Database {
     }
 
     public String transact(String query){
-        return "";
-        //return eval(query);
+        //return "";
+        return eval(query);
     }
 
     public static String eval(String query) {
@@ -161,7 +161,10 @@ public class Database {
 
     //helpers
 
-    public static Table selectHelper(String colsInput, String tablesInput, String condsInput) {
+
+    //old stuff - i wrote a really long selecthelper method and idk what happened to it???
+
+    /*public static Table selectHelper(String colsInput, String tablesInput, String condsInput) {
         String[] colsNames = colsInput.split(COMMA);
         String[] tablesToJoinStrings = tablesInput.split(COMMA);
         ArrayList<Table> tablesToJoin = new ArrayList<Table>();
@@ -186,6 +189,6 @@ public class Database {
         else {
             return s;
         }
-    }
+    }*/
 
 }

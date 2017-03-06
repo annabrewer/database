@@ -33,8 +33,9 @@ public abstract class ValueOperation extends NumberFunction {
             }
             return new Value(item);
         } else if (result == String) {
-            String item = v1.getString() + v2.getString();
-            return new Value(item);
+            StringBuilder item = new StringBuilder(v1.getString());
+            item.append(v2.getString());
+            return new Value(item.toString());
         } else {
             return specialValues(v1, v2);
         }

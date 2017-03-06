@@ -1,7 +1,5 @@
 package db;
 
-import com.sun.prism.shader.FillCircle_LinearGradient_PAD_AlphaTest_Loader;
-
 import java.math.BigDecimal;
 
 /**
@@ -185,7 +183,8 @@ public class Value implements Comparable<Value>{
     /* Various comparing methods */
 
     public boolean equals(Value v) {
-        return compareTo(v) == 0;
+        int result = compareTo(v);
+        return result == 0;
     }
 
     public boolean greaterThan(Value v) {
