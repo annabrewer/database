@@ -106,18 +106,18 @@ public class Row {
      */
     @Override
     public String toString() {
-        String returnString = "";
+        StringBuilder returnString = new StringBuilder();
         int i = values.values().size();
 
         for (Value v : values.values()) {
-            returnString += v.toString();
+            returnString.append(v.toString());
             i--;
             if (i > 0) {
-                returnString += ",";
+                returnString.append(",");
             }
         }
 
-        return returnString;
+        return returnString.toString();
     }
 
     /* Merges r1 with r2. Rows that share columns but don't share any
