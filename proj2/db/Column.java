@@ -55,23 +55,39 @@ public class Column {
         return values.get(row);
     }
 
+    // Returns the number of rows this column has
+    public int getNumRows() {
+        return values.size();
+    }
+
+    // Returns true if the given value is in this column
+    public boolean contains(Value v) {
+        return values.contains(v);
+    }
+
     public Class getColumnType() {
         return columnType;
     }
 
-    public String getColumnName() {
-        if (columnType == Integer.class) {
-            name = name + " " + "int";
-        } else if (columnType == Float.class) {
-            name = name + " " + "float";
-        } else {
-            name = name + " " + "string";
-        }
+    public String getName() {
         return name;
+    }
+
+    public String getNameWithType() {
+        StringBuilder withType = new StringBuilder(name);
+        withType.append(" ");
+        if (columnType == Integer.class) {
+            withType.append("int");
+        } else if (columnType == Float.class) {
+            withType.append("float");
+        } else {
+            withType.append("string");
+        }
+        return withType.toString();
     }
 
     public static void main(String[] args) {
         Column c = new Column("x", Integer.class);
-        System.out.print(c.getColumnName());
+        System.out.print(c.getNameWithType());
     }
 }

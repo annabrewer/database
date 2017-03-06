@@ -1,5 +1,4 @@
 package db;
-import org.junit.Test;
 
 import java.util.*;
 
@@ -68,6 +67,93 @@ public class Table {
             Column col = columns.get(name);
             col.addValue(r.getValueIn(name));
         }
+    }
+
+    /* Insert a list of columns into a table. Should never
+     * be called outside the table class.
+     */
+    private void insertValues(ArrayList<Column> cols) {
+        for (Column c : cols) {
+            columns.put(c.getName(), c);
+        }
+
+        for (int i = 0; i < cols.get(0).getNumRows(); i++) {
+            Row r = new Row(cols, i);
+            insertValues(r);
+        }
+    }
+
+    /* Return a new table containing only the columns provided.
+     * Assumes the provided columns are in this table. Should
+     * handle incorrect table names during parsing.
+     */
+    Table select(ArrayList<String> selectedColumns, String n) {
+        LinkedHashMap<String, Class> colInfo = new LinkedHashMap<>();
+        for (String col : selectedColumns) {
+            colInfo.put(col, columnTypes.get(col));
+        }
+
+        Table newTable = new Table(n, colInfo);
+        for (Row r : rows) {
+            newTable.insertValues(r.withColumns(selectedColumns));
+        }
+        return newTable;
+    }
+
+    /* Return a new table containing only the rows where the values in
+     * the provided list of columns return true for the unary conditional
+     * statement applied with the inputted value.
+     */
+    Table select(ArrayList<String> selectedColumns, Conditionals where, Value v, String n) {
+        Table newTable = new Table(n, columnTypes);
+        LinkedHashMap<String, Column> filteredColumns = new LinkedHashMap<>();
+
+        for (String col : selectedColumns) {
+            ArrayList<Value> filteredValues = where.apply(columns.get(col), v);
+            if (filteredValues.isEmpty()) {
+                return newTable;
+            }
+            Column filteredColumn = new Column(col, filteredValues);
+            filteredColumns.put(col, filteredColumn);
+        }
+        for (Row r : rows) {
+            boolean containsFilteredValues = true;
+            for (String col : selectedColumns) {
+                Value val = r.getValueIn(col);
+                Column filteredColumn = filteredColumns.get(col);
+                if (!filteredColumn.contains(val)) {
+                    containsFilteredValues = false;
+                    break;
+                }
+            }
+            if (containsFilteredValues) {
+                newTable.insertValues(r);
+            }
+        }
+        return newTable;
+    }
+
+    Table select(String col1, Conditionals where, String col2, String n) {
+        Table newTable = new Table(n, columnTypes);
+
+        Column c1 = columns.get(col1);
+        Column c2 = columns.get(col2);
+        LinkedHashMap<String, ArrayList<Value>> filteredColumns = where.applyTwoColumns(c1, c2);
+
+        ArrayList<Value> filteredColumn1 = filteredColumns.get(col1);
+        ArrayList<Value> filteredColumn2 = filteredColumns.get(col2);
+        if (filteredColumn1.size() == 0) {
+            return newTable;
+        }
+
+        for (Row r : rows) {
+            Value v1 = r.getValueIn(col1);
+            Value v2 = r.getValueIn(col2);
+            if (filteredColumn1.contains(v1) && filteredColumn2.contains(v2)) {
+                newTable.insertValues(r);
+            }
+        }
+        return newTable;
     }
 
 
@@ -161,15 +247,14 @@ public class Table {
         return columnsInfo;
     }
 
-    @Override
-    public String toString() {
+    public void print() {
         StringBuilder table = new StringBuilder();
 
         Iterator<String> iterateNames = columnNames.iterator();
         while (iterateNames.hasNext()) {
             String name = iterateNames.next();
             Column col = columns.get(name);
-            table.append(col.getColumnName());
+            table.append(col.getNameWithType());
 
             if (iterateNames.hasNext()) {
                 table.append(",");
@@ -182,16 +267,9 @@ public class Table {
             table.append("\r\n");
         }
 
-        return table.toString();
+        System.out.println(table.toString());
     }
 
-    public void print() {
-        System.out.println(toString());
-    }
-
-    /*private ArrayList<String> sharedColumns(Table t) {
-
-    }*/
     public static void main(String[] args) {
         ArrayList<String> n1 = new ArrayList<>();
         Collections.addAll(n1, "x", "y");
@@ -235,6 +313,13 @@ public class Table {
 
         Table t3 = Table.join(t1, t2, "result");
         t3.print();
+
+        /*ArrayList<String> c = new ArrayList<>();
+        Collections.addAll(c, "a", "b");
+        Table t4 = t3.select(c, "selected");
+        t4.print();*/
+
+        t3.select("x", Conditionals.LESS_THAN, "a", "test").print();
     }
 
 

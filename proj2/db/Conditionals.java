@@ -1,6 +1,7 @@
 package db;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 /**
  * Created by Thaniel on 3/3/2017.
@@ -15,7 +16,7 @@ public enum Conditionals implements ColumnConditional {
         }
 
         @Override
-        public ArrayList<Value> applyTwoColumns(Column c1, Column c2) {
+        public LinkedHashMap<String, ArrayList<Value>> applyTwoColumns(Column c1, Column c2) {
             return applyTwoColumns(c1, c2, ValueComparatorFunction.LESS_THAN);
         }
     },
@@ -28,7 +29,7 @@ public enum Conditionals implements ColumnConditional {
         }
 
         @Override
-        public ArrayList<Value> applyTwoColumns(Column c1, Column c2) {
+        public LinkedHashMap<String, ArrayList<Value>> applyTwoColumns(Column c1, Column c2) {
             return applyTwoColumns(c1, c2, ValueComparatorFunction.LESS_OR_EQUAL_TO);
         }
     },
@@ -41,7 +42,7 @@ public enum Conditionals implements ColumnConditional {
         }
 
         @Override
-        public ArrayList<Value> applyTwoColumns(Column c1, Column c2) {
+        public LinkedHashMap<String, ArrayList<Value>> applyTwoColumns(Column c1, Column c2) {
             return applyTwoColumns(c1, c2, ValueComparatorFunction.EQUALS);
         }
     },
@@ -54,7 +55,7 @@ public enum Conditionals implements ColumnConditional {
         }
 
         @Override
-        public ArrayList<Value> applyTwoColumns(Column c1, Column c2) {
+        public LinkedHashMap<String, ArrayList<Value>> applyTwoColumns(Column c1, Column c2) {
             return applyTwoColumns(c1, c2, ValueComparatorFunction.GREATER_THAN);
         }
     },
@@ -67,7 +68,7 @@ public enum Conditionals implements ColumnConditional {
         }
 
         @Override
-        public ArrayList<Value> applyTwoColumns(Column c1, Column c2) {
+        public LinkedHashMap<String, ArrayList<Value>> applyTwoColumns(Column c1, Column c2) {
             return applyTwoColumns(c1, c2, ValueComparatorFunction.GREATER_OR_EQUAL_TO);
         }
     }
