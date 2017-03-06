@@ -48,8 +48,8 @@ public class Row {
      */
     public Row(ArrayList<Column> cols, int index) {
         for (Column c : cols) {
-            columns.add(c.getColumnName());
-            values.put(c.getColumnName(), c.getValueInRow(index));
+            columns.add(c.getNameWithType());
+            values.put(c.getNameWithType(), c.getValueInRow(index));
         }
     }
 
@@ -74,6 +74,11 @@ public class Row {
     // Gets the value in the row that's in the inputted column
      public Value getValueIn(String columnName) {
         return values.get(columnName);
+    }
+
+    // Returns true if the given value is in this row
+    public boolean contains(Value v) {
+        return getRowValues().contains(v);
     }
 
     /* Returns a new row containing values from the inputted columns
