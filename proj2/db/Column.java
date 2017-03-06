@@ -18,6 +18,7 @@ public class Column {
         columnType = t;
     }
 
+
     // Create a column from a list of values. Inputted list shouldn't be empty.
     public Column(String n, ArrayList<Value> vals) {
         values = vals;
@@ -26,17 +27,32 @@ public class Column {
     }
 
     /* Add a value to a column. This is never called directly,
-     * it should always be called by the row class since tables
-     * are constructed row-wise.
+     *  since tables are constructed row-wise.
      */
-    public void add(Value v) {
+    private void addValue(Value v) {
         values.add(v);
+    }
+
+    /* Add values into this column from a list of rows.
+     * Assumes the list of rows has this column's name.
+     */
+    public void addFromRows(ArrayList<Row> rows) {
+        values = new ArrayList<>();
+
+        for (Row r : rows) {
+            values.add(r.getValueIn(name));
+        }
     }
 
     /* Various getter methods */
 
     public ArrayList<Value> getValues() {
         return values;
+    }
+
+    // Returns the value in a column that's in the specified row number
+    public Value getValueInRow(int row) {
+        return values.get(row);
     }
 
     public Class getColumnType() {
