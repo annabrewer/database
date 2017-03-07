@@ -14,7 +14,7 @@ public class Row {
     /* List of column names in the order they
      * are in the table.
      */
-    private ArrayList<String> columns;
+    private ArrayList<String> columns = new ArrayList<>();
 
     /* LinkedHashMap that maps column name to the
      * corresponding value in the row
@@ -48,8 +48,8 @@ public class Row {
      */
     public Row(ArrayList<Column> cols, int index) {
         for (Column c : cols) {
-            columns.add(c.getNameWithType());
-            values.put(c.getNameWithType(), c.getValueInRow(index));
+            columns.add(c.getName());
+            values.put(c.getName(), c.getValueInRow(index));
         }
     }
 
