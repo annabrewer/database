@@ -3,14 +3,14 @@ package db;
 import java.util.ArrayList;
 
 public class Database {
-    ArrayList<Table> tables =
+    //ArrayList<Table> tables =
 
     public Database() {
         // YOUR CODE HERE
     }
 
     public String transact(String query) {
-        Parser p = new Parser();
+        /*Parser p = new Parser();
         Object[] input = p.eval(query);
         String cmd = input[0]
 
@@ -38,6 +38,7 @@ public class Database {
 
         } else if (cmd.equals("select")) {
 
-        }
+        }*/
+        return "";
     }
 }
