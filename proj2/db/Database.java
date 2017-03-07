@@ -68,13 +68,33 @@ public class Database {
         }
     }
 
-    public static String createTable(String expr) {
+    public String createTable(String expr) {
         Matcher m;
+        String tableName = m.group(1);
+        String columns = m.group(2); //the cols as 1 long string of comma separated name-type pairs
+
+        LinkedHashMap<String, Class> colsLHM = columnsToLinkedHash(columns);
+        if (colsLHM == null;) {
+            return "Incorrect column type"
+        }
+
         if ((m = CREATE_NEW.matcher(expr)).matches()) {
-            String[] columnsStrings = m.group(2).split(COMMA);
-            tables.put(m.group(1), new Table(m.group(2).split(COMMA)));
+            tables.put(tableName, new Table(tableName, colsLHM));
         } else if ((m = CREATE_SEL.matcher(expr)).matches()) {
             //index 1: name, index 2: expressions(cols), index 3: tables, index 4: conds
+            Matcher m;
+            String tables = m.group(3);
+            String conds = m.group(4);
+
+            selectHelper(columns, tables, conds);
+
+
+
+            String[] columnsStrings = cols.split(COMMA);
+
+            Table temp = new Table(tableName, )
+            Table temp2 = tableSelect(temp, cols, tables, conds);
+            tables.put(tableName, temp);
 
         } else {
             return "Malformed create";
@@ -92,7 +112,7 @@ public class Database {
             ArrayList<Row> rowsList = new ArrayList<Row>();
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                String[] stringRow = line.split("\\s");
+                String[] stringRow = line.split("\\s"); //two slashes or one??
                 ArrayList<Value> valuesList = new ArrayList<Value>();
                 for (String s : stringRow) {
                     valuesList.add(new Value(intOrFloat(s)));
@@ -155,11 +175,86 @@ public class Database {
             System.err.printf("Malformed select: %s\n", expr);
             return new Object[1];
         }
-        Table temp =
+        //repeated code but whatever
+        String columns = m.group(3);
+        String tables = m.group(3);
+        String cond = m.group(4);
+
+        LinkedHashMap<String, Class> colsLHM = columnsToLinkedHash(columns);
+        Table[] tablesAL = tablesToArray(tables);
+        Conditionals cond = condToConditionals(cond);
+
+        if (colsLHM == null) {
+
+        }
+
+        //check if null
+        //test length of tablesarray
+
         return result;
     }
 
     //helpers
+    //parses strings to cols, tables, conds
+    //calls another method which chooses correct method from Table class
+    public Table selectHelper(String columns, String tables, String cond) {
+
+    }
+
+    public Table[] tablesToArray (String tablesInput) {
+        String[] tablesStrings = tablesInput.split(COMMA);
+        for (String s: tablesStrings) {
+            if(tables.containsKey(s)); {
+                tablesInput.add(tables.get(s)); //look up tables in db & add them to list
+            }
+            else {
+                return null;
+            }
+        }
+    }
+
+    public Conditionals condToConditionals (String condInput) {
+
+    }
+
+    public LinkedHashMap<String, Class> columnsToLinkedHash(String colsInput) {
+        LinkedHashMap<String, Class> cols = new LinkedHashMap<String, Class>();
+        String[] columnsStrings = colsInput.split(COMMA); //the cols as a list of strings, each containing name & type
+        for (String s : columnsStrings) {
+            String[] nameAndType = s.split("\\s"); //name and type of a single column
+            String name = s[0];
+            String type = s[1];
+            if (type.equals("int")) {
+                cols.put(name, Integer.class);
+            }
+            if (type.equals("float")) {
+                cols.put(name, Float.class);
+            }
+            if (type.equals("string")) {
+                cols.put(name, String.class);
+            }
+            else {
+                return null;
+            }
+        }
+        return cols;
+    }
+
+    public LinkedHashMap<String, Table> tablesToLinkedHash(String tablesInput)
+
+    public void intOrFloat(String s) {
+
+        if (s.matches("[0-9]+")) {
+            return s;
+            if (s.contains(".")){
+                return Float.parseFloat(s); //returns Float object - use parseFloat and parseInt to get primitive types
+            }
+            return Integer.parseInt(s);
+        }
+        else {
+            return s;
+        }
+    }
 
 
     //old stuff - i wrote a really long selecthelper method and idk what happened to it???
@@ -177,18 +272,6 @@ public class Database {
         tables.put(m.group(1), result);
     }
 
-    public void intOrFloat(String s) {
-
-        if (s.matches("[0-9]+")) {
-            return s;
-            if (s.contains(".")){
-                return Float.parseFloat(s); //returns Float object - use parseFloat and parseInt to get primitive types
-            }
-            return Integer.parseInt(s);
-        }
-        else {
-            return s;
-        }
-    }*/
+    */
 
 }
