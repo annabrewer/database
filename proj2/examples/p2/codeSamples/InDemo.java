@@ -1,5 +1,5 @@
 package examples.p2.codeSamples;
-import edu.princeton.cs.introcs.In;
+//import edu.princeton.cs.introcs.In;
 
 public class InDemo {
 	/** Demo to showcase how to import In and set up
@@ -14,8 +14,8 @@ public class InDemo {
      *  program will be tricky. Post to Piazza if you
      *  can't figure it out.
 	 */
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		In in = new In("InDemo.java");
 		System.out.println(in.readAll());
-	}
+	}*/
 }	

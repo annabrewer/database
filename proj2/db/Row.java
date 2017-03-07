@@ -1,5 +1,18 @@
 package db;
 
+<<<<<<< HEAD
+import java.util.*;
+
+/**
+ * Created by Anna on 3/3/17.
+ */
+public class Row {
+    public ArrayList<Value> r;
+
+    public Row (ArrayList<Value> rowInput) {
+
+    }
+=======
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -206,4 +219,5 @@ public class Row {
 
     }
 
+>>>>>>> 3aef3893844c1b2b225d08a0c52eae7fce8204a2
 }

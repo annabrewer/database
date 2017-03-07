@@ -1,5 +1,4 @@
 package db;
-
 import java.util.*;
 
 /**
@@ -348,5 +347,6 @@ public class Table {
         t4.select("x", Arithmetic.SUBTRACT, new Value(1), "new", "plus1").print();
     }
 
+>>>>>>> 3aef3893844c1b2b225d08a0c52eae7fce8204a2
 
 }
