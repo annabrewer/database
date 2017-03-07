@@ -1,11 +1,5 @@
 package db;
 
-<<<<<<< HEAD
-/**
- * Created by Anna on 3/3/17.
- */
-public class Column {
-=======
 import java.util.ArrayList;
 
 /**
@@ -96,5 +90,4 @@ public class Column {
         Column c = new Column("x", Integer.class);
         System.out.print(c.getNameWithType());
     }
->>>>>>> 3aef3893844c1b2b225d08a0c52eae7fce8204a2
 }

@@ -38,10 +38,6 @@ public class Parser {
                     "\\s*(?:,\\s*.+?\\s*)*)");
 
     public static void main(String[] args) {
-<<<<<<< HEAD
-=======
-
->>>>>>> f43fce77af83751084f15bdd2c4b2d4bcca31a04
         if (args.length != 1) {
             System.err.println("Expected a single query argument");
             return;
@@ -49,10 +45,6 @@ public class Parser {
         System.out.println("evaluating");
         eval(args[0]);
     }
-<<<<<<< HEAD
-
-=======
->>>>>>> f43fce77af83751084f15bdd2c4b2d4bcca31a04
 
     //need constructor for anything???
 
