@@ -1,19 +1,5 @@
 package db;
 
-<<<<<<< HEAD
-import java.util.*;
-
-/**
- * Created by Anna on 3/3/17.
- */
-public class Row {
-    public ArrayList<Value> r;
-
-    public Row (ArrayList<Value> rowInput) {
-
-    }
-=======
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -27,7 +13,7 @@ public class Row {
     /* List of column names in the order they
      * are in the table.
      */
-    private ArrayList<String> columns;
+    private ArrayList<String> columns = new ArrayList<>();
 
     /* LinkedHashMap that maps column name to the
      * corresponding value in the row
@@ -61,8 +47,8 @@ public class Row {
      */
     public Row(ArrayList<Column> cols, int index) {
         for (Column c : cols) {
-            columns.add(c.getNameWithType());
-            values.put(c.getNameWithType(), c.getValueInRow(index));
+            columns.add(c.getName());
+            values.put(c.getName(), c.getValueInRow(index));
         }
     }
 
@@ -219,5 +205,4 @@ public class Row {
 
     }
 
->>>>>>> 3aef3893844c1b2b225d08a0c52eae7fce8204a2
 }

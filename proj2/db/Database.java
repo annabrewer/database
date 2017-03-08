@@ -8,6 +8,9 @@ import java.util.regex.Pattern;
 import java.io.*;
 
 public class Database {
+<<<<<<< HEAD
+    //ArrayList<Table> tables =
+=======
 
     private static final String REST = "\\s*(.*)\\s*",
             COMMA = "\\s*,\\s*",
@@ -37,6 +40,7 @@ public class Database {
                     "\\s*(?:,\\s*.+?\\s*)*)");
 
     public static HashMap<String, Table> tables = new HashMap<String, Table>();
+>>>>>>> f43fce77af83751084f15bdd2c4b2d4bcca31a04
 
     public Database() {
         //init tables here or above - does it make a diff?
@@ -47,6 +51,12 @@ public class Database {
         return eval(query);
     }
 
+<<<<<<< HEAD
+    public String transact(String query) {
+        /*Parser p = new Parser();
+        Object[] input = p.eval(query);
+        String cmd = input[0]
+=======
     public static String eval(String query) {
         Matcher m;
         if ((m = CREATE_CMD.matcher(query)).matches()) {
@@ -135,6 +145,7 @@ public class Database {
                     "Error reading file '"
                             + name+".tbl" + "'");
         }
+>>>>>>> f43fce77af83751084f15bdd2c4b2d4bcca31a04
 
         return "";
     }
@@ -201,6 +212,7 @@ public class Database {
 
     }
 
+<<<<<<< HEAD
     public Table[] tablesToArray (String tablesInput) {
         String[] tablesStrings = tablesInput.split(COMMA);
         for (String s: tablesStrings) {
@@ -210,9 +222,24 @@ public class Database {
             else {
                 return null;
             }
+=======
+    //old stuff - i wrote a really long selecthelper method and idk what happened to it???
+
+<<<<<<< HEAD
+        }*/
+        return "";
+=======
+    /*public static Table selectHelper(String colsInput, String tablesInput, String condsInput) {
+        String[] colsNames = colsInput.split(COMMA);
+        String[] tablesToJoinStrings = tablesInput.split(COMMA);
+        ArrayList<Table> tablesToJoin = new ArrayList<Table>();
+        for (String s: tablesToJoinStrings) {
+            tablesToJoin.add(tables.get(s)); //look up tables in db & add them to list
+>>>>>>> 70456d60f7169cb2e1164ce8cc4c82670adf607f
         }
     }
 
+<<<<<<< HEAD
     public Conditionals condToConditionals (String condInput) {
 
     }
@@ -238,6 +265,11 @@ public class Database {
             }
         }
         return cols;
+=======
+        Table result = Table.join(tablesToJoin, exprs, conds);
+        tables.put(m.group(1), result);
+>>>>>>> f43fce77af83751084f15bdd2c4b2d4bcca31a04
+>>>>>>> 70456d60f7169cb2e1164ce8cc4c82670adf607f
     }
 
     public LinkedHashMap<String, Table> tablesToLinkedHash(String tablesInput)

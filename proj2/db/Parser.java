@@ -30,15 +30,14 @@ public class Parser {
             "(?:,\\s*\\S+\\s+\\S+\\s*)*)\\)"),
             SELECT_CLS  = Pattern.compile("([^,]+?(?:,[^,]+?)*)\\s+from\\s+" +
                     "(\\S+\\s*(?:,\\s*\\S+\\s*)*)(?:\\s+where\\s+" +
-                    "([\\w\\s+\\-*/'<>=!.]+?(?:\\s+and\\s+" +
-                    "[\\w\\s+\\-*/'<>=!.]+?)*))?"),
+                    "([\\w\\s+\\-'<>=!.]+?(?:\\s+and\\s+" +
+                    "[\\w\\s+\\-'<>=!.]+?)*))?"),
             CREATE_SEL  = Pattern.compile("(\\S+)\\s+as select\\s+" +
                     SELECT_CLS.pattern()),
             INSERT_CLS  = Pattern.compile("(\\S+)\\s+values\\s+(.+?" +
                     "\\s*(?:,\\s*.+?\\s*)*)");
 
     public static void main(String[] args) {
-
         if (args.length != 1) {
             System.err.println("Expected a single query argument");
             return;
@@ -50,7 +49,7 @@ public class Parser {
     //need constructor for anything???
 
     public static void eval(String query) {
-        Matcher m;
+        /*Matcher m;
         if ((m = CREATE_CMD.matcher(query)).matches()) {
             createTable(m.group(1));
         } else if ((m = LOAD_CMD.matcher(query)).matches()) {
@@ -67,10 +66,10 @@ public class Parser {
             select(m.group(1));
         } else {
             System.err.printf("Malformed query: %s\n", query);
-        }
+        }*/
     }
 
-    public static Object[] createTable(String expr) {
+    /*public static Object[] createTable(String expr) {
         Matcher m;
         if ((m = CREATE_NEW.matcher(expr)).matches()) {
             //index 1 is name, index 2 is list of columns
@@ -92,7 +91,7 @@ public class Parser {
             System.err.printf("Malformed create: %s\n", expr);
             return new Object[1]; //i guess????
         }
-    }
+    }*/
 
     public static Object[] loadTable(String name) {
         Object[] result = {"load", name};
@@ -109,7 +108,7 @@ public class Parser {
         return result;
     }
 
-    public static Object[] insertRow(String expr) {
+   /* public static Object[] insertRow(String expr) {
         Matcher m = INSERT_CLS.matcher(expr);
         if (!m.matches()) {
             System.err.printf("Malformed insert: %s\n", expr);
@@ -118,14 +117,14 @@ public class Parser {
         //index 1 is table, index 2 is row to be inserted
         Object[] result = {"insert", m.group(1), m.group(2)};
         return result;
-    }
+    }*/
 
     public static Object[] printTable(String name) {
         Object[] result = {"print", name};
         return result;
     }
 
-    public static Object[] select(String expr) {
+    /*public static Object[] select(String expr) {
         Matcher m = SELECT_CLS.matcher(expr);
         if (!m.matches()) {
             System.err.printf("Malformed select: %s\n", expr);
@@ -137,5 +136,5 @@ public class Parser {
         System.out.println(m.group(3));
         Object[] result =  {"select", m.group(1), m.group(2), m.group(3)};
         return result;
-    }
+    }*/
 }

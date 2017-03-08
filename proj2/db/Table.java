@@ -13,7 +13,7 @@ public class Table {
     private LinkedHashMap<String, Column> columns = new LinkedHashMap<>();
 
     // Maps each column name to it's corresponding type
-    private LinkedHashMap<String, Class> columnTypes;
+    private LinkedHashMap<String, Class> columnTypes = new LinkedHashMap<>();
 
     // List of the column names in the order they appear
     private ArrayList<String> columnNames = new ArrayList<>();
@@ -76,7 +76,8 @@ public class Table {
             columns.put(c.getName(), c);
         }
 
-        for (int i = 0; i < cols.get(0).getNumRows(); i++) {
+        int numRows = cols.get(0).getNumRows();
+        for (int i = 0; i < numRows; i++) {
             Row r = new Row(cols, i);
             insertValues(r);
         }
@@ -154,6 +155,30 @@ public class Table {
         }
         return newTable;
     }
+
+    Table select(String col, Arithmetic op, Value v, String n, String colName) {
+        Column c = op.apply(columns.get(col), v, colName);
+        ArrayList<Column> newCol = new ArrayList<>();
+        newCol.add(c);
+        LinkedHashMap<String, Class> colInfo = new LinkedHashMap<>();
+        colInfo.put(colName, c.getColumnType());
+
+        Table newTable = new Table(n, colInfo);
+        newTable.insertValues(newCol);
+        return newTable;
+    }
+
+    Table select(String col1, String col2, Arithmetic op, String n, String colName) {
+        Column newCol = op.apply(columns.get(col1), columns.get(col2), colName);
+        LinkedHashMap<String, Class> colInfo = new LinkedHashMap<>();
+        colInfo.put(colName, newCol.getColumnType());
+
+        return new Table(n, colInfo);
+    }
+
+    /*Table select(HashMap<Arithmetic, ArrayList<String>> expressions) {
+        ArrayList<Table>
+    }*/
 
 
     /* Joins the inputted tables by looking at their columns.
@@ -318,7 +343,8 @@ public class Table {
         Table t4 = t3.select(c, "selected");
         t4.print();*/
 
-        t3.select("x", Conditionals.LESS_THAN, "a", "test").print();
+        Table t4 = t3.select("x", Conditionals.LESS_THAN, "a", "test");
+        t4.select("x", Arithmetic.SUBTRACT, new Value(1), "new", "plus1").print();
     }
 
 >>>>>>> 3aef3893844c1b2b225d08a0c52eae7fce8204a2
