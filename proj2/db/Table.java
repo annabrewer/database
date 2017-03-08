@@ -68,7 +68,7 @@ public class Table {
         }
     }
 
-    /* Insert a list of columns into a table. Should never
+    /* Insert a column into a table. Should never
      * be called outside the table class.
      */
     private void insertValues(ArrayList<Column> cols) {
@@ -81,6 +81,11 @@ public class Table {
             Row r = new Row(cols, i);
             insertValues(r);
         }
+    }
+
+    // Checks to see if this table has the specified column
+    public boolean containsColumn(String col) {
+        return columnNames.contains(col);
     }
 
     /* Return a new table containing only the columns provided.
@@ -101,38 +106,23 @@ public class Table {
     }
 
     /* Return a new table containing only the rows where the values in
-     * the provided list of columns return true for the unary conditional
+     * the provided list of columns return true for the conditional
      * statement applied with the inputted value.
      */
-    Table select(ArrayList<String> selectedColumns, Conditionals where, Value v, String n) {
+    Table select(String selectedColumn, Conditionals where, Value v, String n, String colName) {
         Table newTable = new Table(n, columnTypes);
-        LinkedHashMap<String, Column> filteredColumns = new LinkedHashMap<>();
+        ArrayList<Value> filteredValues = where.apply(columns.get(selectedColumn), v);
+        ArrayList<Column> filteredColumn = new ArrayList<>();
+        filteredColumn.add(new Column(colName, filteredValues));
 
-        for (String col : selectedColumns) {
-            ArrayList<Value> filteredValues = where.apply(columns.get(col), v);
-            if (filteredValues.isEmpty()) {
-                return newTable;
-            }
-            Column filteredColumn = new Column(col, filteredValues);
-            filteredColumns.put(col, filteredColumn);
-        }
-        for (Row r : rows) {
-            boolean containsFilteredValues = true;
-            for (String col : selectedColumns) {
-                Value val = r.getValueIn(col);
-                Column filteredColumn = filteredColumns.get(col);
-                if (!filteredColumn.contains(val)) {
-                    containsFilteredValues = false;
-                    break;
-                }
-            }
-            if (containsFilteredValues) {
-                newTable.insertValues(r);
-            }
-        }
+        newTable.insertValues(filteredColumn);
         return newTable;
     }
 
+    /* Returns a new table containing only the rows where the values in
+     * the same rows of the two provided columns return true for the
+     * conditional statement given.
+     */
     Table select(String col1, Conditionals where, String col2, String n) {
         Table newTable = new Table(n, columnTypes);
 
@@ -156,6 +146,10 @@ public class Table {
         return newTable;
     }
 
+    /* Return a new table containing the provided column with the given
+     * arithmetic operation applied to each of its values with the given
+     * value.
+     */
     Table select(String col, Arithmetic op, Value v, String n, String colName) {
         Column c = op.apply(columns.get(col), v, colName);
         ArrayList<Column> newCol = new ArrayList<>();
@@ -168,6 +162,10 @@ public class Table {
         return newTable;
     }
 
+    /* Returns a new table containing a column with the values resulting from
+     * applying the given arithmetic operation onto the values of col1 and col2
+     * applied row-wise.
+     */
     Table select(String col1, String col2, Arithmetic op, String n, String colName) {
         Column newCol = op.apply(columns.get(col1), columns.get(col2), colName);
         LinkedHashMap<String, Class> colInfo = new LinkedHashMap<>();
@@ -176,10 +174,15 @@ public class Table {
         return new Table(n, colInfo);
     }
 
-    /*Table select(HashMap<Arithmetic, ArrayList<String>> expressions) {
-        ArrayList<Table>
-    }*/
+    static Table copyTable(Table tbl, String n) {
+        Table newTable =  new Table(n, tbl.columnTypes);
 
+        for (Row r : tbl.getRows()) {
+            newTable.insertValues(r);
+        }
+
+        return newTable;
+    }
 
     /* Joins the inputted tables by looking at their columns.
      * If no columns are shared, the rows are merged as the
@@ -244,7 +247,6 @@ public class Table {
         }
 
         return newTable;
-
     }
 
     private static LinkedHashMap<String, Class> newColumnHelper(Table t1, Table t2) {
@@ -271,7 +273,8 @@ public class Table {
         return columnsInfo;
     }
 
-    public void print() {
+    @Override
+    public String toString() {
         StringBuilder table = new StringBuilder();
 
         Iterator<String> iterateNames = columnNames.iterator();
@@ -290,63 +293,10 @@ public class Table {
             table.append(r.toString());
             table.append("\r\n");
         }
-
-        System.out.println(table.toString());
+        return table.toString();
     }
 
-    public static void main(String[] args) {
-        ArrayList<String> n1 = new ArrayList<>();
-        Collections.addAll(n1, "x", "y");
-        LinkedHashMap<String, Class> colInfo1 = new LinkedHashMap<>();
-        for (String n : n1) {
-            colInfo1.put(n, Integer.class);
-        }
-        ArrayList<Value> v1 = new ArrayList<>();
-        ArrayList<Value> v2 = new ArrayList<>();
-        ArrayList<Value> v3 = new ArrayList<>();
-        Collections.addAll(v1, new Value(1), new Value(7));
-        Collections.addAll(v2, new Value(7), new Value(7));
-        Collections.addAll(v3, new Value(1), new Value(9));
-
-        Table t1 = new Table("test1", colInfo1);
-        t1.insertValues(new Row(n1, v1));
-        t1.insertValues(new Row(n1, v2));
-        t1.insertValues(new Row(n1, v3));
-        t1.print();
-
-        ArrayList<String> n2 = new ArrayList<>();
-        Collections.addAll(n2, "a", "b");
-        LinkedHashMap<String, Class> colInfo2 = new LinkedHashMap<>();
-        for (String n : n2) {
-            colInfo2.put(n, Integer.class);
-        }
-        ArrayList<Value> val1 = new ArrayList<>();
-        ArrayList<Value> val2 = new ArrayList<>();
-        ArrayList<Value> val3 = new ArrayList<>();
-        //ArrayList<Value> val4 = new ArrayList<>();
-        Collections.addAll(val1, new Value(3), new Value(8));
-        Collections.addAll(val2, new Value(4), new Value(9));
-        Collections.addAll(val3, new Value(5), new Value(10));
-        //Collections.addAll(val4, new Value(1), new Value(11), new Value(9));
-        Table t2 = new Table("test2", colInfo2);
-        t2.insertValues(new Row(n2, val1));
-        t2.insertValues(new Row(n2, val2));
-        t2.insertValues(new Row(n2, val3));
-        //t2.insertValues(new Row(n2, val4));
-        t2.print();
-
-        Table t3 = Table.join(t1, t2, "result");
-        t3.print();
-
-        /*ArrayList<String> c = new ArrayList<>();
-        Collections.addAll(c, "a", "b");
-        Table t4 = t3.select(c, "selected");
-        t4.print();*/
-
-        Table t4 = t3.select("x", Conditionals.LESS_THAN, "a", "test");
-        t4.select("x", Arithmetic.SUBTRACT, new Value(1), "new", "plus1").print();
+    public void print() {
+        System.out.println(toString());
     }
-
->>>>>>> 3aef3893844c1b2b225d08a0c52eae7fce8204a2
-
 }
