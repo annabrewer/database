@@ -42,6 +42,7 @@ public class Parser {
     public Parser(HashMap<String, Table> tbls) {
         tables = tbls;
     }
+
     public static void main(String[] args) {
         Parser p = new Parser(new HashMap<>());
         if (args.length != 1) {
@@ -52,33 +53,37 @@ public class Parser {
         p.eval(args[0]);
     }
 
-    public void eval(String query) {
+    public String eval(String query) {
         Matcher m;
         if ((m = CREATE_CMD.matcher(query)).matches()) {
-            createTable(m.group(1));
+            return createTable(m.group(1));
         } else if ((m = LOAD_CMD.matcher(query)).matches()) {
-            loadTable(m.group(1));
+            return loadTable(m.group(1));
         } else if ((m = STORE_CMD.matcher(query)).matches()) {
-            storeTable(m.group(1));
+            return storeTable(m.group(1));
         } else if ((m = DROP_CMD.matcher(query)).matches()) {
-            dropTable(m.group(1));
+            return dropTable(m.group(1));
         } else if ((m = INSERT_CMD.matcher(query)).matches()) {
-            insertRow(m.group(1));
+            return insertRow(m.group(1));
         } else if ((m = PRINT_CMD.matcher(query)).matches()) {
-            printTable(m.group(1));
+            return printTable(m.group(1));
         } else if ((m = SELECT_CMD.matcher(query)).matches()) {
-            select(m.group(1));
+            return select(m.group(1));
         } else {
-            System.err.printf("Malformed query: %s\n", query);
+            return "Malformed query: " + query;
         }
     }
 
+    /* Parses a command for creating a table. Determines if the create
+     * command is either a create new or create from selecting command.
+     * If the command matches neither, returns an error message.
+     */
     public String createTable(String expr) {
         Matcher m;
         if ((m = CREATE_NEW.matcher(expr)).matches()) {
             String name = m.group(1);
             String columns = m.group(2);
-            return createNewTable(name, columns.split(COMMA));
+            return createNewTable(name, columns);
 
         } else if ((m = CREATE_SEL.matcher(expr)).matches()) {
             String name = m.group(1);
@@ -91,23 +96,25 @@ public class Parser {
         }
     }
 
-    /* Creates a new table with string name and with the columns provided in
-     * columns. Columns should be in the format ["name type", "name type"...].
+    /* Parses a command to creates a new table with string name and with the
+     * columns provided in the columns array. Columns should be in the format:
+     *     - ["name type", "name type"...].
+     * If the command is valid, returns an empty string.
      */
-    private String createNewTable(String name, String[] columns) {
+    private String createNewTable(String name, String columns) {
+        String[] cols = columns.split(COMMA);
         String result;
         if (!(result = checkTableName(name)).equals(" ")) {
             return result;
-        } else if (!(result = validateColumns(columns)).equals(" ")) {
+        } else if (!(result = validateColumns(cols)).equals(" ")) {
             return result;
         } else {
-            Table newTable = new Table(name, getColumns(columns));
-            tables.put(name, newTable);
-            return " ";
+            return "";
         }
     }
 
-    /* Creates a table by selecting from a list of tables. Arguments are in the format:
+    /* Parses a command to create a table by selecting from a list of tables.
+     * Arguments are in the format:
      *    - name: String of the name
      *    - colExpr: can either be:
      *        - "<column name> <operation> <column name or literal> as <name>,....."
@@ -115,9 +122,9 @@ public class Parser {
      *    - tbls: "<table name>, "<table name>,....."
      *    - conds: "<column name> <conditional> <column name or literal>, ...."
      * Select statements with column operations and column conditionals aren't supported.
+     * If the command is correct, returns an empty string
      */
     private String createFromSelect(String name, String colExpr, String tbls, String conds) {
-        Table tbl;
         Table joined = join(tbls);
         String result;
         if (!(result = checkTableName(name)).equals(" ")) {
@@ -127,15 +134,22 @@ public class Parser {
         } else if (!(result = checkColumnExpressions(colExpr, joined)).equals(" ")) {
             return result;
         } else {
-            tbl = tableFromSelect(name, colExpr, tbls);
             if (conds == null) {
-                tables.put(name, tbl);
-                return " ";
+                return "";
             } else {
-                tbl =
+                if (!(result = checkConditionalExpressions(joined, conds)).equals(" ")) {
+                    return result;
+                } else {
+                    return "";
+                }
+            }
         }
     }
 
+    /* Parses a command for selecting from a table. Splits up the
+     * command and analyzes it. If the command doesn't match the
+     * format, returns an error message.
+     */
     public String select(String expr) {
         Matcher m;
         if (!(m = SELECT_CMD.matcher(expr)).matches()) {
@@ -158,7 +172,7 @@ public class Parser {
     }
 
     private String selectAs(String name, String colExpr, String tbls) {
-        String result = checkColumnExpressions(colExpr);
+       /* String result = checkColumnExpressions(colExpr);
 
         if (result.equals(" ")) {
             Table t = tableFromSelect(name, colExpr, tbls);
@@ -166,11 +180,12 @@ public class Parser {
             return " ";
         } else {
             return result;
-        }
+        }*/
+       return " ";
     }
 
     private String select(String colExpr, String tbls, String conds) {
-        if (conds == null) {
+        /*if (conds == null) {
             return select(colExpr, tbls);
         } else {
             String result = evalConditional(conds);
@@ -181,26 +196,28 @@ public class Parser {
             } else {
                 return result;
             }
-        }
+        }*/
+        return " ";
     }
 
     private String select(String colExpr, String tbls) {
-        String result = checkColumnExpressions(colExpr);
+        /*String result = checkColumnExpressions(colExpr);
 
         if (result.equals(" ")) {
             Table t = tableFromSelect("temp", colExpr, tbls);
             return t.toString();
         } else {
             return result;
-        }
+        }*/
+        return " ";
     }
 
     /* Returns the table resulting from selecting from the given tables using the
      * given columns with the given conditions applied to them. Formatting of inputs:
      *     - name: String name for resulting table
-     *     - colExpr: can either be
-     *         - <column> <arithmetic> <column or literal> as <name>....
-     *         - <column>, <column>,...
+     *     - colExpr: <column>, <column>,...
+     *     - tbls: <table>, <table>,....
+     *     - conds: <column> <conditional> <column or literal>
      */
     private Table tableFromSelect(String name, String colExpr, String tbls, String conds) {
         Table t = join(tbls);
@@ -235,12 +252,14 @@ public class Parser {
     }
 
     private boolean containsTable(String tbl) {
-        return tables.keySet().contains(tbl);
+        return tables.containsKey(tbl);
     }
 
     private String checkTables(String tbls) {
         if (!containsAllTables(tbls)) {
             return "ERROR: No such table: " + missingTable(tbls);
+        } else {
+            return " ";
         }
     }
 
@@ -266,14 +285,68 @@ public class Parser {
         return " ";
     }
 
-    private String evalConditional(String conds) {
-        String conditional = "([\\w\\s+\\-'<>=!.]+?(?:\\s+and\\s+" +
-                             "[\\w\\s+\\-'<>=!.]+?)*)?";
-        Pattern cond = Pattern.compile(conditional);
+    /* Checks if the conditional statements are all valid. Conds should be in
+     * the format:
+     *     - <column> <conditional> <column or literal> and ......
+     * A conditional is valid if:
+     *     - it generally fits the above format
+     *     - the listed columns are contained in the table being used in the statement
+     *     - if the second operand isn't a column, then it must be a valid literal
+     */
+    private String checkConditionalExpressions(Table tbl, String conds) {
+        String validConditional = "\\w+\\s+[<>=!]+\\s+\\S+\\s+(and\\s+\\w+\\s+[<>=!]+\\s+\\S+\\s*?)?";
+        if (!conds.matches(validConditional)) {
+            return "ERROR: Malformed condtional" + conds;
+        }
+        String[] separatedConditionals = conds.split(AND);
+        String result;
+        for (String conditionals : separatedConditionals) {
+            if (!(result = checkConditionalExpression(tbl, conds)).equals(" ")) {
+                return result;
+            }
+        }
+        return " ";
+    }
 
-        Matcher m;
-        if (!(m = cond.matcher(conds)).matches()) {
-            return "ERROR: Malformed conditional: " + conds;
+    /* Checks if this particular conditional statement is valid. The string cond
+     * is in the format:
+     *     - <column> <conditional> <column or literal>
+     * A conditional is valid if:
+     *     - it generally fits the above format
+     *     - the listed columns are contained in the table being used in the statement
+     *     - if the second operand isn't a column, then it must be a valid literal
+     * Prints an error message if one of the above isn't fulfilled, or an empty string
+     * if it's valid.
+     */
+    private String checkConditionalExpression(Table tbl, String cond) {
+        String[] conditionalParts = cond.split(" ");
+        String column = conditionalParts[0];
+        String condition = conditionalParts[1];
+        String operand = conditionalParts[2];
+        if (!tbl.containsColumn(column)) {
+            return "ERROR: No such column with name: " + column;
+        } else if (!condition.matches("<|>|<=|>=|==|!=")) {
+            return "ERROR: Malformed conditional: " + cond;
+        } else if (!tbl.containsColumn(operand) || !validLiteral(operand)) {
+            return "ERROR: Malformed column expression: " + cond;
+        } else if (tbl.containsColumn(operand)) {
+            Class type1 = tbl.getColumnTypes().get(column);
+            Class type2 = tbl.getColumnTypes().get(operand);
+            if (!compatibleTypes(type1, type2)) {
+                return "ERROR: Incompatible types: " +
+                        typeToString(type1) + " and " + typeToString(type2);
+            } else {
+                return " ";
+            }
+        } else if (validLiteral(operand)) {
+            Class type1 = tbl.getColumnTypes().get(column);
+            Class type2 = getType(getValueType(operand));
+            if (!compatibleTypes(type1, type2)) {
+                return "ERROR: Incompatible types: " +
+                        typeToString(type1) + " and " + typeToString(type2);
+            } else {
+                return " ";
+            }
         } else {
             return " ";
         }
@@ -373,7 +446,7 @@ public class Parser {
             }
         } else if (validLiteral(operand)) {
             Class type1 = t.getColumnTypes().get(column);
-            Class type2 = t.getColumnTypes().get(getValueType(operand));
+            Class type2 = getType(getValueType(operand));
             if (!compatibleTypes(type1, type2) || !arithmetic.equals("+")) {
                 return "ERROR: Incompatible types: " +
                         typeToString(type1) + " and " + typeToString(type2);
@@ -389,15 +462,19 @@ public class Parser {
      * new tabs, new lines, or commas.
      */
     private boolean validLiteral(String literal) {
-        String[] validFormat = new String[]{"-?\\d+", "-?(\\.\\d+|\\d+\\.\\d+|\\d+\\.)",
-                                            "'+[^\\t\\n,'\"]+'"};
-        for (String format : validFormat) {
-            if (literal.matches(format)) {
-                return true;
-            }
-        }
+        String validFloat = "-?(\\.\\d+|\\d+\\.\\d+|\\d+\\.)";
+        String validInt = "-?\\d+";
+        String validString = "'+[^\\t\\n,'\"]+'";
 
-        return false;
+        if (literal.matches(validFloat)) {
+            return true;
+        } else if (literal.matches(validInt)) {
+            return true;
+        } else if (literal.matches(validString)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private boolean compatibleTypes(Class t1, Class t2) {
