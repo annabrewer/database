@@ -91,34 +91,48 @@ public class Parser {
         }
     }
 
+    /* Creates a new table with string name and with the columns provided in
+     * columns. Columns should be in the format ["name type", "name type"...].
+     */
     private String createNewTable(String name, String[] columns) {
-        if (tables.keySet().contains(name)) {
-            return "ERROR: Table already exists: " + name;
-        }
-
-        if (!validName(name)) {
-            return "ERROR: Invalid table name: " + name;
-        }
-
-        String result = evalColumn(columns);
-        if (!validColumn(columns)) {
+        String result;
+        if (!(result = checkTableName(name)).equals(" ")) {
             return result;
+        } else if (!(result = validateColumns(columns)).equals(" ")) {
+            return result;
+        } else {
+            Table newTable = new Table(name, getColumns(columns));
+            tables.put(name, newTable);
+            return " ";
         }
-
-        Table newTable = new Table(name, getColumns(columns));
-        tables.put(name, newTable);
-        return " ";
     }
 
+    /* Creates a table by selecting from a list of tables. Arguments are in the format:
+     *    - name: String of the name
+     *    - colExpr: can either be:
+     *        - "<column name> <operation> <column name or literal> as <name>,....."
+     *        - "<column name>, <column name>, ...."
+     *    - tbls: "<table name>, "<table name>,....."
+     *    - conds: "<column name> <conditional> <column name or literal>, ...."
+     * Select statements with column operations and column conditionals aren't supported.
+     */
     private String createFromSelect(String name, String colExpr, String tbls, String conds) {
-        if (!validName(name)) {
-            return "ERROR: Invalid table name: " + name;
-        } else if (tables.keySet().contains(name)) {
-            return "ERROR: Table already exists: " + name;
-        } else if (!containsAllTables(tbls)) {
-            return "ERROR: No such table: " + missingTable(tbls);
+        Table tbl;
+        Table joined = join(tbls);
+        String result;
+        if (!(result = checkTableName(name)).equals(" ")) {
+            return result;
+        } else if (!(result = checkTables(tbls)).equals(" ")) {
+            return result;
+        } else if (!(result = checkColumnExpressions(colExpr, joined)).equals(" ")) {
+            return result;
         } else {
-            return selectAs(name, colExpr, tbls, conds);
+            tbl = tableFromSelect(name, colExpr, tbls);
+            if (conds == null) {
+                tables.put(name, tbl);
+                return " ";
+            } else {
+                tbl =
         }
     }
 
@@ -144,7 +158,7 @@ public class Parser {
     }
 
     private String selectAs(String name, String colExpr, String tbls) {
-        String result = evalColumnExpression(colExpr);
+        String result = checkColumnExpressions(colExpr);
 
         if (result.equals(" ")) {
             Table t = tableFromSelect(name, colExpr, tbls);
@@ -171,7 +185,7 @@ public class Parser {
     }
 
     private String select(String colExpr, String tbls) {
-        String result = evalColumnExpression(colExpr);
+        String result = checkColumnExpressions(colExpr);
 
         if (result.equals(" ")) {
             Table t = tableFromSelect("temp", colExpr, tbls);
@@ -181,6 +195,13 @@ public class Parser {
         }
     }
 
+    /* Returns the table resulting from selecting from the given tables using the
+     * given columns with the given conditions applied to them. Formatting of inputs:
+     *     - name: String name for resulting table
+     *     - colExpr: can either be
+     *         - <column> <arithmetic> <column or literal> as <name>....
+     *         - <column>, <column>,...
+     */
     private Table tableFromSelect(String name, String colExpr, String tbls, String conds) {
         Table t = join(tbls);
         return t;
@@ -215,6 +236,12 @@ public class Parser {
 
     private boolean containsTable(String tbl) {
         return tables.keySet().contains(tbl);
+    }
+
+    private String checkTables(String tbls) {
+        if (!containsAllTables(tbls)) {
+            return "ERROR: No such table: " + missingTable(tbls);
+        }
     }
 
     private boolean containsAllTables(String tbls) {
@@ -252,63 +279,209 @@ public class Parser {
         }
     }
 
-    private String evalColumnExpression(String colExpr) {
-        String columnExpression = "([^,]+?(?:,[^,]+?)*)";
-        Pattern expression = Pattern.compile(columnExpression);
-
-        Matcher m;
-        if (!(m = expression.matcher(colExpr)).matches()) {
-            return "ERROR: Malformed column expression: " + colExpr;
-        } else {
-            return " ";
-        }
-    }
-
-    private String validColumnExpression(String colExpr, Table t) {
-        String[] expressions = colExpr.split(COMMA);
-
-        for (String expr : expressions) {
-            String[] split = expr.split(" ");
-            String result = expressionHandler(split, t);
-
-            if (!result.equals(" ")) {
+    /* Checks to see if the given column expressions are valid. ColExpr is in
+     * the format of either:
+     *     - "<column name> <operation> <column name or literal> as <name>,....."
+     *     - "<column name>, <column name>, ...."
+     */
+    private String checkColumnExpressions(String colExpr, Table t) {
+        String[] columnExpressions = colExpr.split(",+\\s");
+        for (String expression : columnExpressions) {
+            String result;
+            if (!(result = validColumnExpression(expression, t)).equals(" ")) {
                 return result;
             }
         }
         return " ";
     }
 
-    private String expressionHandler(String[] expr, Table t) {
-        if (expr.length == 1) {
-            String column = expr[0];
-            if (!t.containsColumn(column)) {
-                return "ERROR: No such column with name: " + column;
+    /* Takes in a column expression and the table the expression is referring to.
+     * Checks to see if this particular column expression is valid. ColExpr is in the
+     * format of either:
+     *    - <column name> <arithmetic> <column name or literal> as <name>
+     *    - <column name>
+     */
+    private String validColumnExpression(String colExpr, Table t) {
+        String arithmetic = "\\S+\\s+(\\+|-|\\*|/)+\\s+\\S+\\s+as+\\s+\\S+";
+        if (colExpr.matches(arithmetic)) {
+            return validArithmetic(colExpr, t);
+        } else {
+            return checkTableName(colExpr);
+        }
+    }
+
+    /* Takes in a column expression with arithmetic and the table it refers to.
+     * Checks to see if this expression is valid. ColExpr should be in the format:
+     *     - <column name> <arithmetic> <column name or literal> as <name>
+     * ColExpr is valid if:
+     *     - the first column name is in the table being referred to
+     *     - the arithmetic operation is either +, -, /,
+     *     - the third operand is either a valid column name or literal
+     *         - valid literals either a digit or a sequence of characters
+     *           surrounded by single quotes, i.e. 1, or 'randomcharacters'
+     *     - operation isn't being done on a string with a float or int, vice versa
+     *     - operations involving strings should only have + in the expression
+     *     - the provided name is a valid name
+     */
+    private String validArithmetic(String colExpr, Table t) {
+        String[] parts = colExpr.split("\\sas\\s"); // [<expression>, <name>]
+        String arithmetic = parts[0];
+        String name = parts[1];
+
+        String result;
+        if (!(result = checkTableName(name)).equals(" ")) {
+            return result;
+        } else if (!(result = validArithmeticParts(colExpr, t)).equals(" ")) {
+            return result;
+        } else if (!t.containsColumn(colExpr)) {
+            return "ERROR: No such column with name: " + colExpr;
+        } else {
+            return " ";
+        }
+    }
+
+    /* Checks if the parts of this arithmetic operation are correct. The array parts
+     * is in the format [<column name>, <arithmetic>, <column or literal>]. Every part is valid if:
+     *     - the first column name is in the table being referred to
+     *     - the arithmetic operation is either +, -, /,
+     *     - the third operand is either a valid column name or literal
+     *         - valid literals either a digit or a sequence of characters
+     *           surrounded by single quotes, i.e. 1, or 'randomcharacters'
+     *     - operation isn't being done on a string with a float or int, vice versa
+     *     - operations involving strings should only have + in the expression
+     */
+    private String validArithmeticParts(String expr, Table t) {
+        String[] parts = expr.split(" ");
+        String column = parts[0];
+        String arithmetic = parts[1];
+        String operand = parts[2];
+
+        if (!arithmetic.matches("[-+/*]")) {
+            return "ERROR: Malformed column expression :" + expr;
+        } else if (!t.containsColumn(column)) {
+            return "ERROR: No such column with name: " + column;
+        } else if (!t.containsColumn(operand) || !validLiteral(operand)) {
+            return "ERROR: Malformed column expression: " + expr;
+        } else if (t.containsColumn(operand)) {
+            Class type1 = t.getColumnTypes().get(column);
+            Class type2 = t.getColumnTypes().get(operand);
+            if (!compatibleTypes(type1, type2) || !arithmetic.equals("+")) {
+                return "ERROR: Incompatible types: " +
+                        typeToString(type1) + " and " + typeToString(type2);
+            } else {
+                return " ";
+            }
+        } else if (validLiteral(operand)) {
+            Class type1 = t.getColumnTypes().get(column);
+            Class type2 = t.getColumnTypes().get(getValueType(operand));
+            if (!compatibleTypes(type1, type2) || !arithmetic.equals("+")) {
+                return "ERROR: Incompatible types: " +
+                        typeToString(type1) + " and " + typeToString(type2);
             } else {
                 return " ";
             }
         } else {
-            String[] operations = new String[]{"+", "-", "*", "/"};
-            String column = expr[0];
-            String operation = expr[1];
-            String literal = expr[1];
-
-            for (String op : operations) {
-                if (!operation.equals(op)) {
-                    return "ERROR: Malformed column expression" +
-                            column + operation + literal;
-                }
-            }
-
-            if (!t.containsColumn(column)) {
-                return "ERROR: Malformed column expression: " + column + operation + literal;
-            } else if (!t.containsColumn(literal) && !isLiteral(literal)) {
-                return "ERROR: Malformed column expression: " + column + operation + literal;
-            } else {
-                return " ";
-            }
+            return " ";
         }
     }
 
+    /* Checks if the string is a valid literal. A valid literal cannot have
+     * new tabs, new lines, or commas.
+     */
+    private boolean validLiteral(String literal) {
+        String[] validFormat = new String[]{"-?\\d+", "-?(\\.\\d+|\\d+\\.\\d+|\\d+\\.)",
+                                            "'+[^\\t\\n,'\"]+'"};
+        for (String format : validFormat) {
+            if (literal.matches(format)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean compatibleTypes(Class t1, Class t2) {
+        if (t1 != String.class && t2 == String.class) {
+            return false;
+        } else if (t1 == String.class && t2 != String.class) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /* Checks the formatting of a value and returns it's corresponding
+     * type. If it matches with none of them, it returns an error message.
+     */
+    private String getValueType(String value) {
+        String validInt = "-?\\d+";
+        String validFloat = "-?(\\.\\d+|\\d+\\.\\d+|\\d+\\.)";
+        String validString = "'+[^\\t\\n,'\"]+'";
+
+        if (value.equals("NOVALUE")) {
+            return "NOVALUE";
+        } else if (value.equals("NaN")) {
+            return "NaN";
+        } else if (value.matches(validInt)) {
+            return "int";
+        } else if (value.matches(validFloat)) {
+            return "float";
+        } else if (value.matches(validString)) {
+            return "string";
+        } else {
+            return "ERROR: Malformed data entry: " + value;
+        }
+    }
+
+    private String typeToString(Class type) {
+        if (type == Integer.class) {
+            return "int";
+        } else if (type == Float.class) {
+            return "float";
+        } else {
+            return "string";
+        }
+    }
+
+    private String[] listConditions(String conds) {
+        return conds.split(AND);
+    }
+
+    private String[] listColumnExpressions(String colExpr) {
+        return colExpr.split(COMMA);
+    }
+
+    private String[] splitOperation(String op) {
+        return op.split("\\s");
+    }
+
+    /* Takes in a list of columns that's in the format ["name type", "name type"..]
+     * and puts it in a LinkedHashMap mapping each column name to its specified type.
+     */
+    private static LinkedHashMap<String, Class> getColumns(String[] columns) {
+        LinkedHashMap<String, Class> cols = new LinkedHashMap<>();
+        for (String col : columns) {
+            String[] c = col.split("\\s");
+            cols.put(c[0], getType(c[1]));
+        }
+        return cols;
+    }
+
+    // Returns the corresponding class if the supplied type is int, float, or string.
+    private static Class getType(String type) {
+        if (type.equals("int")) {
+            return Integer.class;
+        } else if (type.equals("float")) {
+            return Float.class;
+        } else {
+            return String.class;
+        }
+    }
+
+    /* Checks to see if the inputted name is valid. A name is valid if:
+     *    - it doesn't start with a number
+     *    - only contains letters and numbers
+     */
     private static boolean validName(String name) {
         if (Character.isDigit(name.charAt(0))) {
             return false;
@@ -324,76 +497,72 @@ public class Parser {
         return true;
     }
 
-    private static boolean validColumn(String[] col) {
-        return evalColumn(col).equals(" ");
-    }
-
-    private static String evalColumn(String[] columnInfo) {
-        if (columnInfo.length == 1) {
-            return "ERROR: Malformed column declaration: " + columnInfo[0];
-        } else if (!columnInfo[1].equals("int") ||
-                   !columnInfo[1].equals("float") ||
-                   !columnInfo[1].equals("string")) {
-            return "ERROR: Invalid type" + columnInfo[1];
+    /* Checks if a given name is a valid table name. It is valid if:
+     *     - it doesn't start with number and contains only letters and
+     *       numbers
+     *     - a table of that name isn't already stored in memory
+     */
+    private String checkTableName(String name) {
+        if (!validName(name)) {
+            return "ERROR: Invalid table name: " + name;
+        } else if (tables.containsKey(name)) {
+            return "ERROR: Table already exists: " + name;
         } else {
             return " ";
         }
     }
 
-    private boolean isLiteral(String literal) {
-        String[] valildFormat = new String[]{"\\d+", "\\d+\\.", "\\'+(.*)\\'"};
+    /* Columns should be in the format ["name type", "name type",....]. Calls
+     * validates each column in the array by calling validColumn on each element.
+     */
+    private String validateColumns(String[] columns) {
+        String result;
+        for (String col : columns) {
+            String[] columnInfo = col.split(" ");
+            if (!(result = validColumn(columnInfo)).equals(" ")) {
+                return result;
+            }
+        }
 
-        for (String format : valildFormat) {
-            if (literal.matches(format)) {
+        return " ";
+
+    }
+
+    /* Takes in an array columnInfo that should be of length two that should be
+     * int the format: ["columnName", "columnType"]. Checks if the
+     * column information is valid. It is valid if:
+     *     - ColumnName doesn't start with a number and contains only
+     *       letters and numbers
+     *     - ColumnType is equal to either int, float, or string.
+     *     - ColumnInfo should be a two element array containing columnName and
+     *       ColumnType
+     */
+    private String validColumn(String[] columnInfo) {
+        if (columnInfo.length == 1) {
+            return "ERROR: Malformed column declaration: " + columnInfo[0];
+        }
+
+        String name = columnInfo[0];
+        String type = columnInfo[1];
+        if (!validName(name)) {
+            return "ERROR: Invalid column name: " + name;
+        } else if (!correctColumnType(type)) {
+            return "ERROR: Invalid type: " + type;
+        } else {
+            return " ";
+        }
+    }
+
+    private boolean correctColumnType(String type) {
+        String[] types = new String[]{"int", "float", "string"};
+
+        for (String t : types) {
+            if (type.equals(t)) {
                 return true;
             }
         }
 
         return false;
-    }
-
-    private String parseValue(String value) {
-        String[] validFormat = new String[]{"\\d+", "\\d+\\.", "\\'+(.*)\\'"};
-        for (String format : validFormat) {
-            if (value.matches(format)) {
-                return " ";
-            }
-        }
-
-        return "ERROR: Malformed data entry: " + value;
-    }
-
-    private String[] listConditions(String conds) {
-        return conds.split(AND);
-    }
-
-    private String[] listColumnExpressions(String colExpr) {
-        return colExpr.split(COMMA);
-    }
-
-    private String[] splitOperation(String op) {
-        return op.split("\\s");
-    }
-
-    //private Table evaluateExpression()
-
-    private static LinkedHashMap<String, Class> getColumns(String[] columns) {
-        LinkedHashMap<String, Class> cols = new LinkedHashMap<>();
-        for (String col : columns) {
-            String[] c = col.split("\\s");
-            cols.put(c[0], getType(c[1]));
-        }
-        return cols;
-    }
-
-    private static Class getType(String t) {
-        if (t.equals("int")) {
-            return Integer.class;
-        } else if (t.equals("float")) {
-            return Float.class;
-        } else {
-            return String.class;
-        }
     }
 
     /* Fill these in.
