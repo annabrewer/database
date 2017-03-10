@@ -196,7 +196,7 @@ public class Database {
                 Table loadedTable = new Table(name, columnInfo);
 
                 String row;
-                while (!(row = tableFileReader.readLine()).equals("")) {
+                while ((row = tableFileReader.readLine()) != null) {
                     ArrayList<Value> rowValues = new ArrayList<>();
                     String[] values = row.split(",");
                     for (String v : values) {
@@ -224,10 +224,10 @@ public class Database {
         if (s.matches("[0-9]+")) {
             if (s.contains(".")) {
                 float f = Float.parseFloat(s);
-                return new Value(f); // .parseFloat(s); //use parseFloat and parseInt to get primitive types
+                return new Value(f);
             }
             int i = Integer.parseInt(s);
-            return new Value(i);  //.parseInt(s);
+            return new Value(i);
         } else {
             return new Value(s);
         }
