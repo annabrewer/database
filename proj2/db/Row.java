@@ -99,6 +99,15 @@ public class Row {
         }
     }
 
+    public boolean containsValue(Value v) {
+        for (Value val : getRowValues()) {
+            if (val.equals(v)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /* Represent this row as a comma separated list of values.
      * Used as a helper method for Table's string method
      */

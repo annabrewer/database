@@ -21,13 +21,16 @@ public interface ColumnFunction {
     default Column apply(ValueOperation op, Column c, Value v, String n) {
         ArrayList<Value> values = c.getValues();
         ArrayList<Value> newValues = new ArrayList<>();
+        Class type = getResultingType(c, v);
 
         for (Value val : values) {
             Value newValue = op.apply(val, v);
             newValues.add(newValue);
         }
 
-        return new Column(n, newValues);
+        Column newColumn = new Column(n, type);
+        newColumn.addValues(newValues);
+        return newColumn;
     }
 
     /* Applies a value operation using values from two columns.
@@ -57,6 +60,19 @@ public interface ColumnFunction {
     default Class getResultingType(Column c1, Column c2) {
         Class t1 = c1.getColumnType();
         Class t2 = c2.getColumnType();
+
+        if (t1 == Float.class || t2 == Float.class) {
+            return Float.class;
+        } else if (t1 == Integer.class && t2 == Integer.class) {
+            return Integer.class;
+        } else {
+            return String.class;
+        }
+    }
+
+    default Class getResultingType(Column c, Value v) {
+        Class t1 = c.getColumnType();
+        Class t2 = v.getItemClass();
 
         if (t1 == Float.class || t2 == Float.class) {
             return Float.class;

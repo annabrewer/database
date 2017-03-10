@@ -71,5 +71,17 @@ public enum Conditionals implements ColumnConditional {
         public LinkedHashMap<String, ArrayList<Value>> applyTwoColumns(Column c1, Column c2) {
             return applyTwoColumns(c1, c2, ValueComparatorFunction.GREATER_OR_EQUAL_TO);
         }
+    },
+
+    NOT_EQUAL_TO {
+        @Override
+        public ArrayList<Value> apply(Column c, Value v) {
+            return apply(c, v, ValueComparatorFunction.NOT_EQUAL_TO);
+        }
+
+        @Override
+        public LinkedHashMap<String, ArrayList<Value>> applyTwoColumns(Column c1, Column c2) {
+            return applyTwoColumns(c1, c2, ValueComparatorFunction.NOT_EQUAL_TO);
+        }
     }
 }

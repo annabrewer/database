@@ -1,30 +1,19 @@
 package db;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 public class Parser {
 
-    // Valid column names should only contain numbers and letters
-    private static final String VALID_NAME = "\\w\\d";
-
     // Various common constructs, simplifies parsing.
-    private static final String REST  = "\\s*(.*)\\s*",
-                                COMMA = "\\s*,\\s*",
+    private static final String COMMA = "\\s*,\\s*",
                                 AND   = "\\s+and\\s+";
 
-    // Stage 1 syntax, contains the command name.
-    private static final Pattern CREATE_CMD = Pattern.compile("create table " + REST),
-                                 LOAD_CMD   = Pattern.compile("load " + REST),
-                                 STORE_CMD  = Pattern.compile("store " + REST),
-                                 DROP_CMD   = Pattern.compile("drop table " + REST),
-                                 INSERT_CMD = Pattern.compile("insert into " + REST),
-                                 PRINT_CMD  = Pattern.compile("print " + REST),
-                                 SELECT_CMD = Pattern.compile("select " + REST);
-
-    // Stage 2 syntax, contains the clauses of commands.
+    // Stage 2 syntax, contains the clauses of commands. Stage 1 handled in Database
     private static final Pattern CREATE_NEW  = Pattern.compile("(\\S+)\\s+\\(\\s*(\\S+\\s+\\S+\\s*" +
                                                "(?:,\\s*\\S+\\s+\\S+\\s*)*)\\)"),
                                  SELECT_CLS  = Pattern.compile("([^,]+?(?:,[^,]+?)*)\\s+from\\s+" +
@@ -44,34 +33,21 @@ public class Parser {
     }
 
     public static void main(String[] args) {
-        Parser p = new Parser(new HashMap<>());
-        if (args.length != 1) {
-            System.err.println("Expected a single query argument");
-            return;
+        HashMap<String, Table> tbls = new HashMap<>();
+        LinkedHashMap<String, Class> info = new LinkedHashMap<>();
+        info.put("x", Integer.class);
+        info.put("y", Integer.class);
+        Table t = new Table("t", info);
+        tbls.put("t", t);
+        Parser p = new Parser(tbls);
+        String cmd = "x as select y from t";
+        Matcher m = CREATE_SEL.matcher(cmd);
+        System.out.println(m.matches());
+        for (int i = 0; i < m.groupCount(); i++) {
+            System.out.println(m.group(i));
         }
-        System.out.println("evaluating");
-        p.eval(args[0]);
-    }
+        System.out.println(p.createTable(cmd));
 
-    public String eval(String query) {
-        Matcher m;
-        if ((m = CREATE_CMD.matcher(query)).matches()) {
-            return createTable(m.group(1));
-        } else if ((m = LOAD_CMD.matcher(query)).matches()) {
-            return loadTable(m.group(1));
-        } else if ((m = STORE_CMD.matcher(query)).matches()) {
-            return storeTable(m.group(1));
-        } else if ((m = DROP_CMD.matcher(query)).matches()) {
-            return dropTable(m.group(1));
-        } else if ((m = INSERT_CMD.matcher(query)).matches()) {
-            return insertRow(m.group(1));
-        } else if ((m = PRINT_CMD.matcher(query)).matches()) {
-            return printTable(m.group(1));
-        } else if ((m = SELECT_CMD.matcher(query)).matches()) {
-            return select(m.group(1));
-        } else {
-            return "Malformed query: " + query;
-        }
     }
 
     /* Parses a command for creating a table. Determines if the create
@@ -84,7 +60,6 @@ public class Parser {
             String name = m.group(1);
             String columns = m.group(2);
             return createNewTable(name, columns);
-
         } else if ((m = CREATE_SEL.matcher(expr)).matches()) {
             String name = m.group(1);
             String colExpr = m.group(2);
@@ -152,7 +127,7 @@ public class Parser {
      */
     public String select(String expr) {
         Matcher m;
-        if (!(m = SELECT_CMD.matcher(expr)).matches()) {
+        if (!(m = SELECT_CLS.matcher(expr)).matches()) {
             return "ERROR: Malformed select: " + expr;
         } else {
             String colExpr = m.group(1);
@@ -162,71 +137,233 @@ public class Parser {
         }
     }
 
-    private String selectAs(String name, String colExpr, String tbls, String conds) {
-        if (conds == null) {
-            return selectAs(name, colExpr, tbls);
-        }
-        Table t = tableFromSelect(name, colExpr, tbls, conds);
-        tables.put(name, t);
-        return " ";
-    }
-
-    private String selectAs(String name, String colExpr, String tbls) {
-       /* String result = checkColumnExpressions(colExpr);
-
-        if (result.equals(" ")) {
-            Table t = tableFromSelect(name, colExpr, tbls);
-            tables.put(name, t);
-            return " ";
-        } else {
-            return result;
-        }*/
-       return " ";
-    }
-
+    /* Analyzes the syntax of a select statement. Returns an error message
+     * if the syntax is incorrect, or an empty string otherwise. Format of
+     * parameters:
+     *     - colExpr: <column> <arithmetic> <column or literal>,..... or
+     *                <column>, <column>,.... or
+     *                *, indicates selected all the columns
+     *     - tbls: <table>, <table>,....
+     *     - conds: <column> <conditional> <column or literal> and .....
+     */
     private String select(String colExpr, String tbls, String conds) {
-        /*if (conds == null) {
-            return select(colExpr, tbls);
-        } else {
-            String result = evalConditional(conds);
-
-            if (result.equals(" ")) {
-                Table t = tableFromSelect("temp", tbls, conds);
-                return t.toString();
-            } else {
-                return result;
-            }
-        }*/
-        return " ";
-    }
-
-    private String select(String colExpr, String tbls) {
-        /*String result = checkColumnExpressions(colExpr);
-
-        if (result.equals(" ")) {
-            Table t = tableFromSelect("temp", colExpr, tbls);
-            return t.toString();
-        } else {
+        String result;
+        if (!(result = checkTables(tbls)).equals(" ")) {
             return result;
-        }*/
-        return " ";
+        } else if (!(result = checkColumnExpressions(colExpr, join(tbls))).equals(" ")) {
+            return result;
+        } else {
+            if (conds != null) {
+                Table t = tableFromSelect("dummy", colExpr, tbls);
+                if (!(result = checkConditionalExpressions(t, conds)).equals(" ")) {
+                    return result;
+                } else {
+                    return "";
+                }
+            } else {
+                return "";
+            }
+        }
     }
 
     /* Returns the table resulting from selecting from the given tables using the
      * given columns with the given conditions applied to them. Formatting of inputs:
      *     - name: String name for resulting table
-     *     - colExpr: <column>, <column>,...
+     *     - colExpr: <column>, <column>,... or * which means to select all columns of tbls
      *     - tbls: <table>, <table>,....
      *     - conds: <column> <conditional> <column or literal>
      */
-    private Table tableFromSelect(String name, String colExpr, String tbls, String conds) {
-        Table t = join(tbls);
-        return t;
+    public Table tableFromSelect(String name, String colExpr, String tbls, String conds) {
+        Table t;
+        if (colExpr.equals("*")) {
+            t = join(tbls);
+        } else {
+            String[] cols = colExpr.split(COMMA);
+            ArrayList<String> selectedColumns = new ArrayList<>();
+
+            for (String c : cols) {
+                selectedColumns.add(c);
+            }
+
+            t = join(tbls).select(selectedColumns, "dummy");
+        }
+
+        Table newTable = evaluateConditionalExpressions(conds, t);
+        return newTable;
     }
 
-    private Table tableFromSelect(String name, String colExpr, String tbls) {
-        return join(tbls);
+    /* Returns the table resulting from selecting from the given tables using the
+     * given columns. Formatting of inputs:
+     *     - name: String name for resulting table
+     *     - colExpr: <column>, <column>,... or * which means to select all columns of tbls
+     *     - tbls: <table>, <table>,....
+     */
+    public Table tableFromSelect(String name, String colExpr, String tbls) {
+        Table joined = join(tbls);
+        if (colExpr.equals("*")) {
+            return joined;
+        } else {
+            ArrayList<Column> columns = evaluateColumnExpressions(colExpr, joined);
+            LinkedHashMap<String, Class> columnInfo = new LinkedHashMap<>();
+            for (Column c : columns) {
+                String n = c.getName();
+                Class t = c.getColumnType();
+                columnInfo.put(n, t);
+            }
+
+            Table newTable = new Table(name, columnInfo);
+            newTable.insertValues(columns);
+            return newTable;
+        }
     }
+
+    /* Evaluates several conditional statements being called onto the given table.
+     * The conditional statements are in the format:
+     *     - <column> <conditional> <column or literal,....
+     * Returns the table resulting from the conditional statements.
+     */
+    private Table evaluateConditionalExpressions(String conds, Table tbl) {
+        String[] expressions = conds.split(AND);
+
+        for(String cond : expressions) {
+            tbl = evaluateConditionalExpression(cond, tbl);
+        }
+
+        return tbl;
+    }
+
+    /* Evaluates the given conditional statement being called onto the given table.
+     * The conditional statement is in the format:
+     *     - <column> <conditional> <column or literal>
+     * Returns the table resulting from this conditional statement.
+     */
+    private Table evaluateConditionalExpression(String cond, Table tbl) {
+        String[] parts = cond.split(" ");
+        String column = parts[0];
+        Conditionals conditional = getConditional(parts[1]);
+        String operand = parts[2];
+        if (operand.matches("-?(\\.\\d+|\\d+\\.\\d+|\\d+\\.)|" +
+                                   "-?\\d+|'+[^\\t\\n,'\"]+'")) {
+            return tbl.select(column, conditional, getValue(parts[1]), "dummy");
+        } else {
+            return tbl.select(column, conditional, operand, "dummy");
+        }
+    }
+
+    private Conditionals getConditional(String c) {
+        if (c.equals("<")) {
+            return Conditionals.LESS_THAN;
+        } else if (c.equals("<=")) {
+            return Conditionals.LESS_OR_EQUAL_TO;
+        } else if (c.equals("==")) {
+            return Conditionals.EQUALS;
+        } else if (c.equals("!=")) {
+            return Conditionals.NOT_EQUAL_TO;
+        } else if (c.equals(">")) {
+            return Conditionals.GREATER_THAN;
+        } else {
+            return Conditionals.GREATER_OR_EQUAL_TO;
+        }
+    }
+
+    /* Evaluates the column expressions given and returns a list of columns that are
+     * the product of those expressions. ColExpr is in the format:
+     *     - <column> <arithmetic> <column or literal> as <name>,.....
+     *     - or <column>, <column>,....
+     */
+    private ArrayList<Column> evaluateColumnExpressions(String colExpr, Table tbl) {
+        String[] expressions = colExpr.split(COMMA);
+        ArrayList<Column> columns = new ArrayList<>();
+
+        for (String expr : expressions) {
+            String[] parts = expr.split("\\s+as\\s+");
+            String e = parts[0];
+            String n;
+            Column column;
+            Column dummy = evaluateColumnExpression(e, tbl);
+            if (parts.length == 1) {
+                n = parts[0];
+                Class type = tbl.getColumnTypes().get(n);
+                column = new Column(n, type);
+                column.addValues(dummy.getValues());
+            } else {
+                n = parts[1];
+                column = new Column(n, dummy.getColumnType());
+                column.addValues(dummy.getValues());
+            }
+            columns.add(column);
+        }
+
+        return columns;
+    }
+
+
+    /* Evaluates the given column expression and returns a dummy column of
+     * the values that are the result of that expression.
+     * Expr is in the format:
+     *     - <column> <arithmetic> <column or literal>
+     *     - or <column>
+     */
+    private Column evaluateColumnExpression(String expr, Table tbl) {
+        String[] parts = expr.split(" ");
+        Class type;
+        ArrayList<Value> values;
+
+        if (parts.length == 1) {
+            String column = parts[0];
+            Column col = tbl.getColumns().get(column);
+            values = col.getValues();
+            type = col.getColumnType();
+        } else {
+            Column c = tbl.getColumns().get(parts[0]);
+            Arithmetic operation = getArithmeticOperation(parts[1]);
+            String operand = parts[2];
+
+            if (operand.matches("-?(\\.\\d+|\\d+\\.\\d+|\\d+\\.)|" +
+                    "-?\\d+|'+[^\\t\\n,'\"]+'")) {
+                Value v = getValue(operand);
+                Column col = operation.apply(c, v, "dummy");
+                values = col.getValues();
+                type = col.getColumnType();
+            } else {
+                Column other = tbl.getColumns().get(operand);
+                Column col = operation.apply(c, other, "dummy");
+                values = col.getValues();
+                type = col.getColumnType();
+            }
+        }
+        Column dummy = new Column("dummy", type);
+        dummy.addValues(values);
+        return dummy;
+     }
+
+    private Arithmetic getArithmeticOperation(String arithmetic) {
+        if (arithmetic.equals("+")) {
+            return Arithmetic.ADD;
+        } else if (arithmetic.equals("-")) {
+            return Arithmetic.SUBTRACT;
+        } else if (arithmetic.equals("*")) {
+            return Arithmetic.MULTIPLY;
+        } else {
+            return Arithmetic.DIVIDE;
+        }
+     }
+
+     private Value getValue(String value) {
+        String i = "-?\\d+";
+        String f = "-?(\\.\\d+|\\d+\\.\\d+|\\d+\\.)";
+        String s = "'+[^\\t\\n,'\"]+'";
+        if (value.matches(i)) {
+            int item = Integer.parseInt(value);
+            return new Value(item);
+        } else if (value.matches(f)) {
+            float item = Float.parseFloat(value);
+            return new Value(item);
+        } else {
+            String item = value.split("'")[1];
+            return new Value(item);
+        }
+     }
 
 
     private Table join(String tbls) {
@@ -356,8 +493,12 @@ public class Parser {
      * the format of either:
      *     - "<column name> <operation> <column name or literal> as <name>,....."
      *     - "<column name>, <column name>, ...."
+     *     - or *, which means we are selecting all the columns from the table
      */
     private String checkColumnExpressions(String colExpr, Table t) {
+        if (colExpr.equals("*")) {
+            return " ";
+        }
         String[] columnExpressions = colExpr.split(",+\\s");
         for (String expression : columnExpressions) {
             String result;
@@ -404,10 +545,8 @@ public class Parser {
         String result;
         if (!(result = checkTableName(name)).equals(" ")) {
             return result;
-        } else if (!(result = validArithmeticParts(colExpr, t)).equals(" ")) {
+        } else if (!(result = validArithmeticParts(arithmetic, t)).equals(" ")) {
             return result;
-        } else if (!t.containsColumn(colExpr)) {
-            return "ERROR: No such column with name: " + colExpr;
         } else {
             return " ";
         }
@@ -433,8 +572,8 @@ public class Parser {
             return "ERROR: Malformed column expression :" + expr;
         } else if (!t.containsColumn(column)) {
             return "ERROR: No such column with name: " + column;
-        } else if (!t.containsColumn(operand) || !validLiteral(operand)) {
-            return "ERROR: Malformed column expression: " + expr;
+        } else if (!t.containsColumn(operand) && !validLiteral(operand)) {
+            return "ERROR: Malformed no such column: " + operand;
         } else if (t.containsColumn(operand)) {
             Class type1 = t.getColumnTypes().get(column);
             Class type2 = t.getColumnTypes().get(operand);
@@ -471,6 +610,8 @@ public class Parser {
         } else if (literal.matches(validInt)) {
             return true;
         } else if (literal.matches(validString)) {
+            return true;
+        } else if (literal.equals("NOVALUE") || literal.equals("NaN")) {
             return true;
         } else {
             return false;
@@ -535,7 +676,7 @@ public class Parser {
     /* Takes in a list of columns that's in the format ["name type", "name type"..]
      * and puts it in a LinkedHashMap mapping each column name to its specified type.
      */
-    private static LinkedHashMap<String, Class> getColumns(String[] columns) {
+    public LinkedHashMap<String, Class> getColumns(String[] columns) {
         LinkedHashMap<String, Class> cols = new LinkedHashMap<>();
         for (String col : columns) {
             String[] c = col.split("\\s");
@@ -566,7 +707,7 @@ public class Parser {
 
         String[] characters = name.split("");
         for (String ch : characters) {
-            if (!ch.matches(VALID_NAME)) {
+            if (!ch.matches("[\\w\\d]+")) {
                 return false;
             }
         }
@@ -652,15 +793,116 @@ public class Parser {
         return " ";
     }
 
+    /* Parses a command to drop the given table from the
+     * database. Returns an error if the given table
+     * doesn't exist.
+     */
     public String dropTable(String name) {
+        if (containsTable(name)) {
+            return "";
+        } else {
+            return "ERROR: No such table: " + name;
+        }
+    }
+
+    /* Parses a command to insert a row of values into a
+     * given table. Breaks up each part of the insert clause
+     * and analyzes each individually.
+     */
+    public String checkInsertRowCommand(String cmd) {
+        Matcher m = INSERT_CLS.matcher(cmd);
+        if (m.matches()) {
+            String[] insertClauses = cmd.split("\\s+values\\s+");
+            String tableName = insertClauses[0];
+            String values = insertClauses[1];
+            return checkInsertRow(tableName, values);
+        } else {
+            return "ERROR: Malformed insert: " + cmd;
+        }
+    }
+
+    /* Parses insert command and carries it out. */
+    public Row evaluateInsertRow(String tbl, String values) {
+        ArrayList<Value> rowValues = new ArrayList<>();
+
+        ArrayList<String> columnNames = tables.get(tbl).getColumnNames();
+        LinkedHashMap<String, Class> columnTypes = tables.get(tbl).getColumnTypes();
+        Iterator<String> names = columnNames.iterator();
+        String[] listValues = values.split("\\s*,\\s*");
+        for (String value : listValues) {
+            String column = names.next();
+
+            Value v;
+            if (value.equals("NOVALUE")) {
+                Class type = columnTypes.get(column);
+                v = new Value(DataType.NOVALUE, type);
+            } else {
+                v = getValue(value);
+            }
+            rowValues.add(v);
+        }
+
+        return new Row(columnNames, rowValues);
+    }
+
+    /* Parses a command to insert a row of values into
+     * the given table. Analyzes each part of the insert
+     * clause.
+     */
+    private String checkInsertRow(String tbl, String values) {
+        String result;
+        if (!containsTable(tbl)) {
+            return "ERROR: No such table: " + tbl;
+        } else if (!(result = checkValues(tbl, values)).equals(" ")) {
+            return result;
+        } else {
+            return "";
+        }
+    }
+
+    /* Checks to see if the values to be inputted into the given table
+     * are correct. Arguments are in the format:
+     *     - tbl: name of table to insert values
+     *     - value: <literal>, <literal>, <literal>,....
+     * The values are correct if their order matches the order of the
+     * column types and if they're all valid literals.
+     */
+    private String checkValues(String tbl, String values) {
+        String[] listValues = values.split("\\s*,\\s*");
+        for (String value : listValues) {
+            if (!validLiteral(value)) {
+                return "ERROR: Invalid data entry" + value;
+            }
+        }
+        Table t = tables.get(tbl);
+        ArrayList<String> columnNames = t.getColumnNames();
+        if (listValues.length != columnNames.size()) {
+            return "ERROR: Row does not match table";
+        }
+
+        Iterator<String> names = columnNames.iterator();
+        LinkedHashMap<String, Class> columnTypes = t.getColumnTypes();
+        for (String value : listValues) {
+            if (!value.equals("NOVALUE")) {
+                Class type = columnTypes.get(names.next());
+                Value v = getValue(value);
+                if (type != v.getItemClass()) {
+                    return "ERROR: Row does not match table";
+                }
+            }
+        }
+
         return " ";
     }
 
-    public String insertRow(String expr) {
-        return " ";
-    }
-
+    /* Parses a command to print the given table. Returns
+     * an error if the the given table isn't in the database.
+     */
     public String printTable(String name) {
-        return " ";
+        if (containsTable(name)) {
+            return "";
+        } else {
+            return "ERROR: No such table" + name;
+        }
     }
 }

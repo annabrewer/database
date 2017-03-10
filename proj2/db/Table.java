@@ -68,14 +68,8 @@ public class Table {
         }
     }
 
-    /* Insert a column into a table. Should never
-     * be called outside the table class.
-     */
-    private void insertValues(ArrayList<Column> cols) {
-        for (Column c : cols) {
-            columns.put(c.getName(), c);
-        }
-
+    /* Insert a list of column into a table. */
+    public void insertValues(ArrayList<Column> cols) {
         int numRows = cols.get(0).getNumRows();
         for (int i = 0; i < numRows; i++) {
             Row r = new Row(cols, i);
@@ -106,16 +100,17 @@ public class Table {
     }
 
     /* Return a new table containing only the rows where the values in
-     * the provided list of columns return true for the conditional
-     * statement applied with the inputted value.
+     * the column return true for the conditional statement applied with
+     * the inputted value.
      */
-    Table select(String selectedColumn, Conditionals where, Value v, String n, String colName) {
+    Table select(String selectedColumn, Conditionals where, Value v, String n) {
         Table newTable = new Table(n, columnTypes);
         ArrayList<Value> filteredValues = where.apply(columns.get(selectedColumn), v);
-        ArrayList<Column> filteredColumn = new ArrayList<>();
-        filteredColumn.add(new Column(colName, filteredValues));
-
-        newTable.insertValues(filteredColumn);
+        for (Row r : rows) {
+            if (filteredValues.contains(r.getValueIn(selectedColumn))) {
+                newTable.insertValues(r);
+            }
+        }
         return newTable;
     }
 
@@ -130,12 +125,12 @@ public class Table {
         Column c2 = columns.get(col2);
         LinkedHashMap<String, ArrayList<Value>> filteredColumns = where.applyTwoColumns(c1, c2);
 
-        ArrayList<Value> filteredColumn1 = filteredColumns.get(col1);
-        ArrayList<Value> filteredColumn2 = filteredColumns.get(col2);
-        if (filteredColumn1.size() == 0) {
+        if (filteredColumns.size() == 0) {
             return newTable;
         }
 
+        ArrayList<Value> filteredColumn1 = filteredColumns.get(col1);
+        ArrayList<Value> filteredColumn2 = filteredColumns.get(col2);
         for (Row r : rows) {
             Value v1 = r.getValueIn(col1);
             Value v2 = r.getValueIn(col2);
@@ -168,10 +163,14 @@ public class Table {
      */
     Table select(String col1, String col2, Arithmetic op, String n, String colName) {
         Column newCol = op.apply(columns.get(col1), columns.get(col2), colName);
+        ArrayList<Column> col = new ArrayList<>();
+        col.add(newCol);
         LinkedHashMap<String, Class> colInfo = new LinkedHashMap<>();
         colInfo.put(colName, newCol.getColumnType());
 
-        return new Table(n, colInfo);
+        Table newTable = new Table(n, colInfo);
+        newTable.insertValues(col);
+        return newTable;
     }
 
     static Table copyTable(Table tbl, String n) {
@@ -298,5 +297,53 @@ public class Table {
 
     public void print() {
         System.out.println(toString());
+    }
+
+    public static void main(String[] args) {
+        LinkedHashMap<String, Class> cols = new LinkedHashMap<>();
+        cols.put("x", Integer.class);
+        cols.put("y", Integer.class);
+        ArrayList<String> names = new ArrayList<>();
+        names.add("x");
+        names.add("y");
+        ArrayList<Value> v1 = new ArrayList<>();
+        ArrayList<Value> v2 = new ArrayList<>();
+        v1.add(new Value(1));
+        v1.add(new Value(2));
+        v2.add(new Value(3));
+        v2.add(new Value(4));
+        ArrayList<Column> c = new ArrayList<>();
+        Column c1 = new Column("x", v1);
+        Column c2 = new Column("y", v2);
+        c.add(c1);
+        c.add(c2);
+
+        Table t = new Table("test", cols);
+        t.insertValues(c);
+        t.print();
+
+        LinkedHashMap<String, Class> other = new LinkedHashMap<>();
+        other.put("z", Integer.class);
+        other.put("y", Integer.class);
+        ArrayList<String> othernames = new ArrayList<>();
+        othernames.addAll(other.keySet());
+        ArrayList<Value> othervalues1 = new ArrayList<>();
+        ArrayList<Value> othervalues2 = new ArrayList<>();
+        othervalues1.add(new Value(1));
+        othervalues1.add(new Value(2));
+        othervalues2.add(new Value(2));
+        othervalues2.add(new Value(1));
+        ArrayList<Column> othercolumns = new ArrayList<>();
+        othercolumns.add(new Column("z", othervalues1));
+        othercolumns.add(new Column("y", othervalues2));
+
+        Table x = new Table("other", other);
+        x.insertValues(othercolumns);
+        x.print();
+
+        Table m = Table.join(t, x, "merge");
+        m.print();
+
+
     }
 }

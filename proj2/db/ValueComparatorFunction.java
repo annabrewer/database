@@ -38,5 +38,12 @@ public enum ValueComparatorFunction implements ValueComparator {
         public boolean apply(Value v1, Value v2) {
             return v1.greaterThan(v2) || v1.equals(v2);
         }
+    },
+
+    NOT_EQUAL_TO {
+        @Override
+        public boolean apply(Value v1, Value v2) {
+            return !v1.equals(v2);
+        }
     }
 }

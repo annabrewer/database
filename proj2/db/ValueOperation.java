@@ -17,6 +17,9 @@ public abstract class ValueOperation extends NumberFunction {
     public Value apply(Value v1, Value v2) {
         DataType t1 = v1.getType();
         DataType t2 = v2.getType();
+        if (t1 == DataType.NOVALUE || t2 == DataType.NOVALUE) {
+            return specialValues(v1, v2);
+        }
         DataType result = getResultingType(t1, t2);
 
         if (result == Float) {

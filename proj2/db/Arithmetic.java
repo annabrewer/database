@@ -60,19 +60,4 @@ public enum Arithmetic implements ColumnFunction {
         }
     };
 
-    public static void main(String[] args) {
-        ArrayList<Value> v1 = new ArrayList<>();
-        Collections.addAll(v1, new Value(DataType.NaN, Float.class), new Value(7.802f), new Value(4.956f));
-        ArrayList<Value> v2 = new ArrayList<>();
-        Collections.addAll(v2, new Value(DataType.NOVALUE, Float.class), new Value(6.741f), new Value(DataType.NOVALUE, Float.class));
-
-        Column c1 = new Column("t1", v1);
-        Column c2 = new Column("t2", v2);
-
-        Column c3 = Arithmetic.SUBTRACT.apply(c1, c2, "t3");
-        for (Value v : c3.getValues()) {
-            System.out.print(v.toString() + " ");
-        }
-    }
-
 }

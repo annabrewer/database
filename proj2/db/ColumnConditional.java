@@ -47,7 +47,7 @@ public interface ColumnConditional {
             Value v2 = vals2.get(i);
             ArrayList<Value> filteredVals1 = filteredValues.get(c1.getName());
             ArrayList<Value> filteredVals2 = filteredValues.get(c2.getName());
-            if (cond.apply(v1, v2) || (!filteredVals1.contains(v1) && !filteredVals2.contains(v2))) {
+            if (cond.apply(v1, v2)) {
                 filteredVals1.add(v1);
                 filteredVals2.add(v2);
             }

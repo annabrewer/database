@@ -33,6 +33,12 @@ public class Column {
         values.add(v);
     }
 
+    // Add a list of values to this column
+    public void addValues(ArrayList<Value> vals) {
+        for (Value v : vals) {
+            addValue(v);
+        }
+    }
     /* Add values into this column from a list of rows.
      * Assumes the list of rows has this column's name.
      */
