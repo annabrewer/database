@@ -289,11 +289,11 @@ public class Table {
                 table.append(",");
             }
         }
-        table.append("\r\n");
+        table.append("\n");
 
         for (Row r : rows) {
             table.append(r.toString());
-            table.append("\r\n");
+            table.append("\n");
         }
         return table.toString();
     }
