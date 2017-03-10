@@ -1,7 +1,5 @@
 package db;
 
-import java.math.BigDecimal;
-
 /**
  * Created by Thaniel on 2/27/2017.
  */
@@ -61,19 +59,6 @@ public class Value implements Comparable<Value>{
         }
     }
 
-    // Change this value to the one given
-    /*public void changeValue(Value v) {
-        type = v.getType();
-        itemClass = v.getItemClass();
-        if (itemClass == Integer.class) {
-            integer = v.getInteger();
-        } else if (itemClass == Float.class) {
-            aFloat = v.getFloat();
-        } else {
-            string = v.getString();
-        }
-    }*/
-
     private int getInteger() {
         return integer;
     }
@@ -102,17 +87,10 @@ public class Value implements Comparable<Value>{
         return type;
     }
 
-    // Helper method to format floats for printing to 3 decimal places
-    private static BigDecimal round(float f) {
-        BigDecimal rounded = new BigDecimal(Float.toString(f));
-        rounded = rounded.setScale(3, BigDecimal.ROUND_HALF_UP);
-        return rounded;
-    }
-
     @Override
     public String toString() {
         if (type == DataType.FLOAT) {
-            return round(aFloat).toString();
+            return String.format("%.3f", aFloat);
         } else if (type == DataType.INT) {
             return Integer.toString(integer);
         } else if (type == DataType.STRING) {
@@ -131,7 +109,6 @@ public class Value implements Comparable<Value>{
      * incorrect comparisons across numbers and strings is
      * handled during parsing.
      */
-
     @Override
     public int compareTo(Value v) {
         DataType t = v.getType();
@@ -201,6 +178,7 @@ public class Value implements Comparable<Value>{
         Value v1 = new Value(DataType.NOVALUE, Integer.class);
         Value v2 = new Value(94.258f);
         System.out.println(v1.equals(v2));
+        System.out.println(new Value(1.4555435f));
 
     }
 }
