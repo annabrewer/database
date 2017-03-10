@@ -109,10 +109,11 @@ public class Value implements Comparable<Value>{
         return rounded;
     }
 
+
     @Override
     public String toString() {
         if (type == DataType.FLOAT) {
-            return round(aFloat).toString();
+            return String.format("%.3f", aFloat);
         } else if (type == DataType.INT) {
             return Integer.toString(integer);
         } else if (type == DataType.STRING) {
@@ -201,6 +202,7 @@ public class Value implements Comparable<Value>{
         Value v1 = new Value(DataType.NOVALUE, Integer.class);
         Value v2 = new Value(94.258f);
         System.out.println(v1.equals(v2));
+        System.out.println(new Value(1.4555435f));
 
     }
 }
