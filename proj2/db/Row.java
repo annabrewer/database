@@ -71,7 +71,7 @@ public class Row {
     }
 
     // Gets the value in the row that's in the inputted column
-     public Value getValueIn(String columnName) {
+    public Value getValueIn(String columnName) {
         return values.get(columnName);
     }
 
@@ -150,7 +150,7 @@ public class Row {
             }
         }
         for (String c : r2.values.keySet()) {
-            if(!cols.contains(c)) {
+            if (!cols.contains(c)) {
                 cols.add(c);
                 vals.add(r2.values.get(c));
             }
@@ -180,7 +180,8 @@ public class Row {
      * to find shared values within the shared columns. Returns a
      * map of shared column name to shared value within that column.
      */
-    private static LinkedHashMap<String, Value> sharedValues(Row r1, Row r2, ArrayList<String> sharedCols) {
+    private static LinkedHashMap<String, Value> sharedValues(Row r1, Row r2, ArrayList<String>
+            sharedCols) {
         LinkedHashMap<String, Value> shared = new LinkedHashMap<>();
 
         for (String col : sharedCols) {

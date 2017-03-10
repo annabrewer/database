@@ -6,6 +6,6 @@ package db;
 // The data types we can put into our database
 public enum DataType {
 
-    INT, FLOAT, STRING, NaN, NOVALUE;
+    INT, FLOAT, STRING, NaN, NOVALUE
 
 }
