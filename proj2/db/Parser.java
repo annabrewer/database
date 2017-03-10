@@ -1,9 +1,6 @@
 package db;
 
-<<<<<<< HEAD
-=======
 import java.io.*;
->>>>>>> 2efa135133e85b2620b998e520ba55bff68e2fe0
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -51,31 +48,8 @@ public class Parser {
             System.out.println(m.group(i));
         }
         System.out.println(p.createTable(cmd));
-
-<<<<<<< HEAD
-=======
-    public String eval(String query) {
-        Matcher m;
-        if ((m = CREATE_CMD.matcher(query)).matches()) {
-            return createTable(m.group(1));
-        } else if ((m = LOAD_CMD.matcher(query)).matches()) {
-            return loadTable(m.group(1));
-        } else if ((m = STORE_CMD.matcher(query)).matches()) {
-            return storeTable(m.group(1));
-        } else if ((m = DROP_CMD.matcher(query)).matches()) {
-            return dropTable(m.group(1));
-        } else if ((m = INSERT_CMD.matcher(query)).matches()) {
-            //need to split up m.group(1)
-            return insertRow(m.group(1));
-        } else if ((m = PRINT_CMD.matcher(query)).matches()) {
-            return printTable(m.group(1));
-        } else if ((m = SELECT_CMD.matcher(query)).matches()) {
-            return select(m.group(1));
-        } else {
-            return "Malformed query: " + query;
-        }
->>>>>>> 2efa135133e85b2620b998e520ba55bff68e2fe0
     }
+
 
     /* Parses a command for creating a table. Determines if the create
      * command is either a create new or create from selecting command.
@@ -898,7 +872,6 @@ public class Parser {
      * doesn't exist.
      */
     public String dropTable(String name) {
-<<<<<<< HEAD
         if (containsTable(name)) {
             return "";
         } else {
@@ -994,63 +967,17 @@ public class Parser {
         }
 
         return " ";
-=======
-        tables.remove(name);
-        return "";
     }
 
-    public String insertRow(String name, String expr) {
-        if (tables.containsKey(name)) {
-            String[] valuesStrings = expr.split(COMMA);
-            Table t = tables.get(name);
-            ArrayList<Value> values = new ArrayList<Value>();
-
-            for (String s : valuesStrings) {
-                values.add(toValue(s));
-            }
-
-            ArrayList<String> colNames = t.getColumnNames();
-
-            if (values.size() == colNames.size()) {
-
-                LinkedHashMap<String, Class> colTypes = t.getColumnTypes();
-                Iterator<Value> iterateValues = values.iterator();
-
-                for (String col : colNames) {
-                    Class classOfValue = iterateValues.next().getItemClass();
-                    Class classInColumn = colTypes.get(col);
-                    if (classOfValue != classInColumn) {
-                        return "Type of value does not correspond to type of column";
-                    }
-                }
-
-                Row r = new Row(colNames);
-                r.insertValues(values);
-                t.insertValues(r);
-                return "";
-            } else {
-                return "Wrong number of values in row";
-            }
-        } else {
-            return "Error:table does not exist";
-        }
->>>>>>> 2efa135133e85b2620b998e520ba55bff68e2fe0
-    }
 
     /* Parses a command to print the given table. Returns
      * an error if the the given table isn't in the database.
      */
     public String printTable(String name) {
-<<<<<<< HEAD
         if (containsTable(name)) {
             return "";
         } else {
             return "ERROR: No such table" + name;
-=======
-        if (tables.containsKey(name)) {
-            return tables.get(name).toString();
-        } else {
-            return "Error:table does not exist";
         }
     }
 
@@ -1069,7 +996,6 @@ public class Parser {
         } else {
             Value v = new Value(s);
             return v;
->>>>>>> 2efa135133e85b2620b998e520ba55bff68e2fe0
         }
     }
 }

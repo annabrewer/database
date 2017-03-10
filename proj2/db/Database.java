@@ -50,7 +50,6 @@ public class Database {
     }
 
     public String transact(String query) {
-<<<<<<< HEAD
         String result;
         if (!(result = eval(query)).equals("")) {
             return result;
@@ -181,12 +180,4 @@ public class Database {
 
     }
 }
-=======
-        return parser.eval(query);
-    }
 
-    /*private String createTable(String cmd) {
-        return parser.createTable(cmd);
-    }*/
-}
->>>>>>> 2efa135133e85b2620b998e520ba55bff68e2fe0
