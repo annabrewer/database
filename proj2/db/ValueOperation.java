@@ -35,7 +35,7 @@ public abstract class ValueOperation extends NumberFunction {
                 item = (int) func(v1.getNum(), v2.getNum());
             }
             return new Value(item);
-        } else if (result == String) {
+        } else if (result == typeString) {
             StringBuilder item = new StringBuilder(v1.getString());
             item.append(v2.getString());
             return new Value(item.toString());
@@ -80,8 +80,8 @@ public abstract class ValueOperation extends NumberFunction {
         } else if (t1 == typeInt && t2 == typeInt) {
             // Operations with two ints result in an int
             return typeInt;
-        } else if (t1 == String && t2 == String) {
-            return String;
+        } else if (t1 == typeString && t2 == typeString) {
+            return typeString;
         } else if (t1 == typeNoValue && t2 != typeNoValue) {
             return t2;
         } else if (t1 != typeNoValue && t2 == typeNoValue) {
