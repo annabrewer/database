@@ -1,6 +1,11 @@
 package db;
 
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,16 +26,16 @@ public class Database {
                                  SELECT_CMD = Pattern.compile("select " + REST);
 
     // Stage 2 syntax, contains the clauses of commands.
-    private static final Pattern CREATE_NEW  = Pattern.compile("(\\S+)\\s+\\(\\s*(\\S+\\s+\\S+\\s*" +
-                                               "(?:,\\s*\\S+\\s+\\S+\\s*)*)\\)"),
-                                 SELECT_CLS  = Pattern.compile("([^,]+?(?:,[^,]+?)*)\\s+from\\s+" +
-                                               "(\\S+\\s*(?:,\\s*\\S+\\s*)*)(?:\\s+where\\s+" +
-                                               "([\\w\\s+\\-'<>=!.]+?(?:\\s+and\\s+" +
-                                               "[\\w\\s+\\-'<>=!.]+?)*))?"),
-                                 CREATE_SEL  = Pattern.compile("(\\S+)\\s+as select\\s+" +
-                                                   SELECT_CLS.pattern()),
-                                 INSERT_CLS  = Pattern.compile("(\\S+)\\s+values\\s+(.+?" +
-                                               "\\s*(?:,\\s*.+?\\s*)*)");
+    private static final Pattern CREATE_NEW  = Pattern.compile("(\\S+)\\s+\\(\\s*(\\S+\\s+\\S+\\s*"
+                                               + "(?:,\\s*\\S+\\s+\\S+\\s*)*)\\)"),
+                                 SELECT_CLS  = Pattern.compile("([^,]+?(?:,[^,]+?)*)\\s+from\\s+"
+                                               + "(\\S+\\s*(?:,\\s*\\S+\\s*)*)(?:\\s+where\\s+"
+                                               + "([\\w\\s+\\-'<>=!.]+?(?:\\s+and\\s+"
+                                               + "[\\w\\s+\\-'<>=!.]+?)*))?"),
+                                 CREATE_SEL  = Pattern.compile("(\\S+)\\s+as select\\s+"
+                                                  + SELECT_CLS.pattern()),
+                                 INSERT_CLS  = Pattern.compile("(\\S+)\\s+values\\s+(.+?"
+                                               + "\\s*(?:,\\s*.+?\\s*)*)");
 
 
     private HashMap<String, Table> tables;
@@ -44,9 +49,7 @@ public class Database {
     public static void main(String[] args) {
         Database db = new Database();
 
-        System.out.println(db.transact("create table t (x string, y int)"));
-        System.out.println(db.transact("insert into t values 'this', 2"));
-        System.out.println(db.transact("print t"));
+        System.out.println(db.transact("load fans"));
     }
 
     public String transact(String query) {
@@ -61,11 +64,11 @@ public class Database {
         Matcher m;
         if ((m = CREATE_CMD.matcher(query)).matches()) {
             return createTable(m.group(1));
-        } /*else if ((m = LOAD_CMD.matcher(query)).matches()) {
+        } else if ((m = LOAD_CMD.matcher(query)).matches()) {
             return loadTable(m.group(1));
         } else if ((m = STORE_CMD.matcher(query)).matches()) {
             return storeTable(m.group(1));
-        } */else if ((m = DROP_CMD.matcher(query)).matches()) {
+        } else if ((m = DROP_CMD.matcher(query)).matches()) {
             return dropTable(m.group(1));
         } else if ((m = INSERT_CMD.matcher(query)).matches()) {
             return insertRow(m.group(1));
@@ -153,9 +156,8 @@ public class Database {
     }
 
     private String dropTable(String cmd) {
-        String result;
-        if (!(result = parser.printTable(cmd)).equals("")) {
-            return result;
+        if (!tables.containsKey(cmd)) {
+            return "ERROR: No such table: " + cmd;
         } else {
             tables.remove(cmd);
             return "";
@@ -177,7 +179,40 @@ public class Database {
 
             return "";
         }
-
     }
+
+    private String loadTable(String name) {
+        if (!name.matches("\\D+\\S+")) {
+            return "ERROR: No such table: " + name;
+        } else {
+            try {
+                FileReader reader = new FileReader(name);
+                BufferedReader tableFileReader = new BufferedReader(reader);
+                String[] columns = tableFileReader.readLine().split(",");
+                LinkedHashMap<String, Class> columnInfo = parser.getColumns(columns);
+                Table loadedTable = new Table(name, columnInfo);
+                if (tables.containsKey(name)) {
+                    tables.replace(name, loadedTable);
+                } else {
+                    tables.put(loadedTable.getName(), loadedTable);
+                }
+
+                String row;
+                while ((row = tableFileReader.readLine()) != null) {
+                    eval("insert into " + name + "values " + row);
+                }
+                return "";
+            } catch (FileNotFoundException e) {
+                return "ERROR: No such TBL file: " + name;
+            } catch (IOException e) {
+                return "ERROR: Could not read file: " + name;
+            }
+        }
+    }
+
+    private String storeTable(String name) {
+        return "";
+    }
+
 }
 

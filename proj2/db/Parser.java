@@ -34,20 +34,7 @@ public class Parser {
     }
 
     public static void main(String[] args) {
-        HashMap<String, Table> tbls = new HashMap<>();
-        LinkedHashMap<String, Class> info = new LinkedHashMap<>();
-        info.put("x", Integer.class);
-        info.put("y", Integer.class);
-        Table t = new Table("t", info);
-        tbls.put("t", t);
-        Parser p = new Parser(tbls);
-        String cmd = "x as select y from t";
-        Matcher m = CREATE_SEL.matcher(cmd);
-        System.out.println(m.matches());
-        for (int i = 0; i < m.groupCount(); i++) {
-            System.out.println(m.group(i));
-        }
-        System.out.println(p.createTable(cmd));
+
     }
 
 
@@ -786,77 +773,6 @@ public class Parser {
 
     /* Fill these in.
      */
-    public String loadTable(String name) {
-        try {
-            FileReader fileReader = new FileReader(name + ".tbl"); //im assuming we dont need file path because it's in same directory??
-
-            BufferedReader bufferedReader = new BufferedReader(fileReader);
-
-            String colsString = bufferedReader.readLine(); //column names and types
-            String[] colsArray = colsString.split(COMMA); //array of name-type pairs as strings
-            ArrayList<String[]> cols = new ArrayList<>(); //arraylist of name-type pairs as arrays of strings
-            ArrayList<String> colNames = new ArrayList<>(); //arraylist of column names
-
-            for (int i = 0; i < colsArray.length; i++) {
-                cols.add(colsArray[i].split("\\s"));
-            }
-
-            LinkedHashMap<String, Class> colsInput = new LinkedHashMap<String, Class>();
-
-            for (int i = 0; i < colsArray.length; i++) {
-                String type = cols.get(i)[1];
-                String colName = cols.get(i)[0];
-                colNames.add(colName); //will be useful later
-
-                Class c;
-
-                if (type.toLowerCase().equals("int")) {
-                    c = Integer.class;
-                } else if (type.toLowerCase().equals("float")) {
-                    c = Float.class;
-                } else if (type.toLowerCase().equals("string")) {
-                    c = String.class;
-                }
-                else {
-                    return "Error";
-                }
-
-                colsInput.put(colName, c);
-            }
-
-            Table t = new Table(name, colsInput);
-
-            String line;
-            //line = bufferedReader.readLine();
-            line = bufferedReader.readLine();
-
-            while (!(line.equals(""))) {
-                String[] stringRow = line.split(COMMA);
-                ArrayList<Value> valuesList = new ArrayList<Value>();
-                for (String s : stringRow) {
-                    valuesList.add(toValue(s));
-                }
-
-                Row r = new Row(colNames, valuesList);
-                t.insertValues(r);
-                line = bufferedReader.readLine();
-            }
-
-            tables.put(name, t);
-
-            bufferedReader.close();
-        } catch (FileNotFoundException ex) {
-            System.out.println(
-                    "Unable to open file '" +
-                            name + ".tbl" + "'");
-        } catch (IOException ex) {
-            System.out.println(
-                    "Error reading file '"
-                            + name + ".tbl" + "'");
-        }
-
-        return "";
-    }
 
     public String storeTable(String name) {
         try (PrintWriter out = new PrintWriter(name + ".tbl")) {
@@ -978,24 +894,6 @@ public class Parser {
             return "";
         } else {
             return "ERROR: No such table" + name;
-        }
-    }
-
-    //helper
-
-    public static Value toValue(String s) {
-        if (s.matches("[0-9]+")) {
-            if (s.contains(".")) {
-                float f = Float.parseFloat(s);
-                Value v = new Value(f);
-                return v; // .parseFloat(s); //use parseFloat and parseInt to get primitive types
-            }
-            int i = Integer.parseInt(s);
-            Value v = new Value(i);
-            return v;  //.parseInt(s);
-        } else {
-            Value v = new Value(s);
-            return v;
         }
     }
 }
