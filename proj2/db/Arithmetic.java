@@ -1,8 +1,5 @@
 package db;
 
-import java.util.ArrayList;
-import java.util.Collections;
-
 /**
  * Created by Thaniel on 2/28/2017.
  */
@@ -58,6 +55,6 @@ public enum Arithmetic implements ColumnFunction {
         public Column apply(Column c, Value v, String n) {
             return apply(new Divide(), c, v, n);
         }
-    };
+    }
 
 }

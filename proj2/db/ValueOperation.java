@@ -7,11 +7,11 @@ package db;
 // Abstract class that applies operations onto Value objects
 public abstract class ValueOperation extends NumberFunction {
 
-    private DataType Int = DataType.INT;
-    private DataType Float = DataType.FLOAT;
-    private DataType String = DataType.STRING;
-    private DataType NaN = DataType.NaN;
-    private DataType NoValue = DataType.NOVALUE;
+    private DataType typeInt = DataType.INT;
+    private DataType typeFloat = DataType.FLOAT;
+    private DataType typeString = DataType.STRING;
+    private DataType typeNaN = DataType.NaN;
+    private DataType typeNoValue = DataType.NOVALUE;
 
     // Apply some arbitrary operation on two values
     public Value apply(Value v1, Value v2) {
@@ -22,14 +22,14 @@ public abstract class ValueOperation extends NumberFunction {
         }
         DataType result = getResultingType(t1, t2);
 
-        if (result == Float) {
+        if (result == typeFloat) {
             float item = (float) func(v1.getNum(), v2.getNum());
             return new Value(item);
-        } else if (result == Int) {
+        } else if (result == typeInt) {
             int item;
-            if (t1 == NoValue) {
+            if (t1 == typeNoValue) {
                 item = (int) func(0, v2.getNum());
-            } else if (t2 == NoValue) {
+            } else if (t2 == typeNoValue) {
                 item = (int) func(v1.getNum(), 0);
             } else {
                 item = (int) func(v1.getNum(), v2.getNum());
@@ -71,23 +71,23 @@ public abstract class ValueOperation extends NumberFunction {
        during parsing, so assumes input is always correct.
      */
     private DataType getResultingType(DataType t1, DataType t2) {
-        if (t1 == NaN || t2 == NaN) {
+        if (t1 == typeNaN || t2 == typeNaN) {
             // Operations with NaN result in NaN
-            return NaN;
-        } else if (t1 == Float || t2 == Float) {
+            return typeNaN;
+        } else if (t1 == typeFloat || t2 == typeFloat) {
             // Operations with at least one float results in a float
-            return Float;
-        } else if (t1 == Int && t2 == Int) {
+            return typeFloat;
+        } else if (t1 == typeInt && t2 == typeInt) {
             // Operations with two ints result in an int
-            return Int;
+            return typeInt;
         } else if (t1 == String && t2 == String) {
             return String;
-        } else if (t1 == NoValue && t2 != NoValue) {
+        } else if (t1 == typeNoValue && t2 != typeNoValue) {
             return t2;
-        } else if (t1 != NoValue && t2 == NoValue){
+        } else if (t1 != typeNoValue && t2 == typeNoValue) {
             return t1;
         } else {
-            return NoValue;
+            return typeNoValue;
         }
     }
 }

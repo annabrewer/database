@@ -1,5 +1,8 @@
 package db;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Iterator;
 
 /**
  * Created by Anna on 2/28/17.
@@ -62,9 +65,9 @@ public class Table {
     public void insertValues(Row r) {
         rows.add(r);
 
-        for (String name : columnNames) {
-            Column col = columns.get(name);
-            col.addValue(r.getValueIn(name));
+        for (String n : columnNames) {
+            Column col = columns.get(n);
+            col.addValue(r.getValueIn(n));
         }
     }
 
@@ -278,8 +281,8 @@ public class Table {
 
         Iterator<String> iterateNames = columnNames.iterator();
         while (iterateNames.hasNext()) {
-            String name = iterateNames.next();
-            Column col = columns.get(name);
+            String n = iterateNames.next();
+            Column col = columns.get(n);
             table.append(col.getNameWithType());
 
             if (iterateNames.hasNext()) {
