@@ -291,9 +291,13 @@ public class Table {
         }
         table.append("\n");
 
-        for (Row r : rows) {
+        Iterator<Row> iterateRows = rows.iterator();
+        while (iterateRows.hasNext()) {
+            Row r = iterateRows.next();
             table.append(r.toString());
-            table.append("\n");
+            if (iterateRows.hasNext()) {
+                table.append("\n");
+            }
         }
         return table.toString();
     }
