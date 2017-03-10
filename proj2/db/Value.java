@@ -94,7 +94,7 @@ public class Value implements Comparable<Value>{
         } else if (type == DataType.INT) {
             return Integer.toString(integer);
         } else if (type == DataType.STRING) {
-            return string;
+            return "'" + string + "'";
         } else if (type == DataType.NaN) {
             return "NaN";
         } else {
