@@ -50,8 +50,10 @@ public class Database {
     public static void main(String[] args) {
         Database db = new Database();
 
-        System.out.println(db.transact("load fans"));
-        System.out.println(db.transact("print fans"));
+        System.out.println(db.transact("create table t (x int, y int)"));
+        System.out.println(db.transact("insert into t values 5, 6"));
+        System.out.println(db.transact("insert into t values 5, 7"));
+        System.out.println(db.transact("select * from t where x == 5 and y < 7"));
     }
 
     public String transact(String query) {

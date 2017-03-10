@@ -232,7 +232,7 @@ public class Parser {
         String operand = parts[2];
         if (operand.matches("-?(\\.\\d+|\\d+\\.\\d+|\\d+\\.)|" +
                                    "-?\\d+|'+[^\\t\\n,'\"]+'")) {
-            return tbl.select(column, conditional, getValue(parts[1]), "dummy");
+            return tbl.select(column, conditional, getValue(operand), "dummy");
         } else {
             return tbl.select(column, conditional, operand, "dummy");
         }
@@ -419,9 +419,9 @@ public class Parser {
      *     - if the second operand isn't a column, then it must be a valid literal
      */
     private String checkConditionalExpressions(Table tbl, String conds) {
-        String validConditional = "\\w+\\s+[<>=!]+\\s+\\S+\\s+(and\\s+\\w+\\s+[<>=!]+\\s+\\S+\\s*?)?";
+        String validConditional = "\\w+\\s+[<>=!]+\\s+\\S+?(\\s+and\\s+\\w+\\s+[<>=!]+\\s+\\S+\\s*)*";
         if (!conds.matches(validConditional)) {
-            return "ERROR: Malformed condtional" + conds;
+            return "ERROR: Malformed conditional: " + conds;
         }
         String[] separatedConditionals = conds.split(AND);
         String result;
@@ -444,7 +444,7 @@ public class Parser {
      * if it's valid.
      */
     private String checkConditionalExpression(Table tbl, String cond) {
-        String[] conditionalParts = cond.split(" ");
+        String[] conditionalParts = cond.split("\\s+");
         String column = conditionalParts[0];
         String condition = conditionalParts[1];
         String operand = conditionalParts[2];
@@ -452,7 +452,7 @@ public class Parser {
             return "ERROR: No such column with name: " + column;
         } else if (!condition.matches("<|>|<=|>=|==|!=")) {
             return "ERROR: Malformed conditional: " + cond;
-        } else if (!tbl.containsColumn(operand) || !validLiteral(operand)) {
+        } else if (!tbl.containsColumn(operand) && !validLiteral(operand)) {
             return "ERROR: Malformed column expression: " + cond;
         } else if (tbl.containsColumn(operand)) {
             Class type1 = tbl.getColumnTypes().get(column);
@@ -667,7 +667,7 @@ public class Parser {
     public LinkedHashMap<String, Class> getColumns(String[] columns) {
         LinkedHashMap<String, Class> cols = new LinkedHashMap<>();
         for (String col : columns) {
-            String[] c = col.split("\\s");
+            String[] c = col.split("\\s+");
             cols.put(c[0], getType(c[1]));
         }
         return cols;
@@ -724,7 +724,7 @@ public class Parser {
     private String validateColumns(String[] columns) {
         String result;
         for (String col : columns) {
-            String[] columnInfo = col.split(" ");
+            String[] columnInfo = col.split("\\s+");
             if (!(result = validColumn(columnInfo)).equals(" ")) {
                 return result;
             }
