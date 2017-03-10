@@ -778,7 +778,7 @@ public class Parser {
         try (PrintWriter out = new PrintWriter(name + ".tbl")) {
             out.println(tables.get(name).toString());
         } catch (IOException e) {
-            return "Error";
+            return "ERROR: Can't read file " + name;
         }
         return "";
     }

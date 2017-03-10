@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
@@ -50,6 +51,7 @@ public class Database {
         Database db = new Database();
 
         System.out.println(db.transact("load fans"));
+        System.out.println(db.transact("print fans"));
     }
 
     public String transact(String query) {
@@ -156,8 +158,9 @@ public class Database {
     }
 
     private String dropTable(String cmd) {
-        if (!tables.containsKey(cmd)) {
-            return "ERROR: No such table: " + cmd;
+        String result;
+        if (!(result = parser.dropTable(cmd)).equals("")) {
+            return result;
         } else {
             tables.remove(cmd);
             return "";
@@ -186,20 +189,27 @@ public class Database {
             return "ERROR: No such table: " + name;
         } else {
             try {
-                FileReader reader = new FileReader(name);
+                FileReader reader = new FileReader(name + ".tbl");
                 BufferedReader tableFileReader = new BufferedReader(reader);
                 String[] columns = tableFileReader.readLine().split(",");
                 LinkedHashMap<String, Class> columnInfo = parser.getColumns(columns);
                 Table loadedTable = new Table(name, columnInfo);
+
+                String row;
+                while (!(row = tableFileReader.readLine()).equals("")) {
+                    ArrayList<Value> rowValues = new ArrayList<>();
+                    String[] values = row.split(",");
+                    for (String v : values) {
+                        Value val = toValue(v);
+                        rowValues.add(val);
+                    }
+                    Row newRow = new Row(loadedTable.getColumnNames(), rowValues);
+                    loadedTable.insertValues(newRow);
+                }
                 if (tables.containsKey(name)) {
                     tables.replace(name, loadedTable);
                 } else {
-                    tables.put(loadedTable.getName(), loadedTable);
-                }
-
-                String row;
-                while ((row = tableFileReader.readLine()) != null) {
-                    eval("insert into " + name + "values " + row);
+                    tables.put(name, loadedTable);
                 }
                 return "";
             } catch (FileNotFoundException e) {
@@ -210,8 +220,21 @@ public class Database {
         }
     }
 
+    public static Value toValue(String s) {
+        if (s.matches("[0-9]+")) {
+            if (s.contains(".")) {
+                float f = Float.parseFloat(s);
+                return new Value(f); // .parseFloat(s); //use parseFloat and parseInt to get primitive types
+            }
+            int i = Integer.parseInt(s);
+            return new Value(i);  //.parseInt(s);
+        } else {
+            return new Value(s);
+        }
+    }
+
     private String storeTable(String name) {
-        return "";
+        return parser.storeTable(name);
     }
 
 }
