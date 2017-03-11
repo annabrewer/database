@@ -288,7 +288,7 @@ public class Parser {
      *     - or <column>
      */
     private Column evaluateColumnExpression(String expr, Table tbl) {
-        Pattern format = Pattern.compile("(\\w+)\\s*+([-+/*])\\s*((\\S+\\s*\\S+)|(\\d+))");
+        Pattern format = Pattern.compile("(\\w+)\\s*+([-+/*])\\s*((\\S+\\s*\\S*)+|(\\d+))");
         Matcher m = format.matcher(expr);
         Class type;
         ArrayList<Value> values;

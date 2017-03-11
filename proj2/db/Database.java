@@ -184,14 +184,17 @@ public class Database {
             try {
                 FileReader reader = new FileReader(name + ".tbl");
                 BufferedReader tableFileReader = new BufferedReader(reader);
-                if (tableFileReader.readLine() == null) {
+                String result;
+                String[] columns;
+                if ((result = tableFileReader.readLine()) == null) {
                     tableFileReader.close();
-                    return "ERROR: Empty TBL file.";
+                    return "ERROR: Cannot read empty TBL file.";
+                } else {
+                    columns = result.split(",");
                 }
-                String[] columns = tableFileReader.readLine().split(",");
-                if (!parser.validateColumns(columns).equals(" ")) {
+                if (!(result = parser.validateColumns(columns)).equals(" ")) {
                     tableFileReader.close();
-                    return parser.validateColumns(columns);
+                    return result;
                 }
                 LinkedHashMap<String, Class> columnInfo = parser.getColumns(columns);
                 Table loadedTable = new Table(name, columnInfo);
@@ -203,10 +206,10 @@ public class Database {
 
                 String row;
                 while ((row = tableFileReader.readLine()) != null) {
-                    String result;
-                    if (!(result = parser.checkValues(name, row)).equals(" ")) {
+                    String r;
+                    if (!(r = parser.checkValues(name, row)).equals(" ")) {
                         tableFileReader.close();
-                        return result;
+                        return r;
                     }
                     ArrayList<Value> rowValues = new ArrayList<>();
                     String[] values = row.split(",");
@@ -217,6 +220,7 @@ public class Database {
                     Row newRow = new Row(loadedTable.getColumnNames(), rowValues);
                     loadedTable.insertValues(newRow);
                 }
+                tableFileReader.close();
                 return "";
             } catch (FileNotFoundException e) {
                 return "ERROR: No such TBL file: " + name;
