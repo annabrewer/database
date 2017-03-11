@@ -293,19 +293,19 @@ public class Parser {
      *     - or <column>
      */
     private Column evaluateColumnExpression(String expr, Table tbl) {
-        String[] parts = expr.split(" ");
+        Pattern format = Pattern.compile("(\\w+)\\s*+([-+/*])\\s*(\\S+)");
+        Matcher m = format.matcher(expr);
         Class type;
         ArrayList<Value> values;
 
-        if (parts.length == 1) {
-            String column = parts[0];
-            Column col = tbl.getColumns().get(column);
+        if (!m.matches()) {
+            Column col = tbl.getColumns().get(expr);
             values = col.getValues();
             type = col.getColumnType();
         } else {
-            Column c = tbl.getColumns().get(parts[0]);
-            Arithmetic operation = getArithmeticOperation(parts[1]);
-            String operand = parts[2];
+            Column c = tbl.getColumns().get(m.group(1));
+            Arithmetic operation = getArithmeticOperation(m.group(2));
+            String operand = m.group(3);
 
             if (operand.matches("-?(\\.\\d+|\\d+\\.\\d+|\\d+\\.)|" +
                     "-?\\d+|'+[^\\t\\n,'\"]+'")) {
@@ -487,7 +487,7 @@ public class Parser {
         if (colExpr.equals("*")) {
             return " ";
         }
-        String[] columnExpressions = colExpr.split(",+\\s");
+        String[] columnExpressions = colExpr.split("\\s*,+\\s+");
         for (String expression : columnExpressions) {
             String result;
             if (!(result = validColumnExpression(expression, t)).equals(" ")) {
@@ -504,7 +504,7 @@ public class Parser {
      *    - <column name>
      */
     private String validColumnExpression(String colExpr, Table t) {
-        String arithmetic = "\\S+\\s+(\\+|-|\\*|/)+\\s+\\S+\\s+as+\\s+\\S+";
+        String arithmetic = "\\w+\\s*([+-/*])+\\s*\\S+\\s+as+\\s+\\S+";
         if (colExpr.matches(arithmetic)) {
             return validArithmetic(colExpr, t);
         } else {
@@ -551,10 +551,14 @@ public class Parser {
      *     - operations involving strings should only have + in the expression
      */
     private String validArithmeticParts(String expr, Table t) {
-        String[] parts = expr.split(" ");
-        String column = parts[0];
-        String arithmetic = parts[1];
-        String operand = parts[2];
+        Pattern format = Pattern.compile("(\\w+)\\s*+([-+/*])\\s*(\\S+)");
+        Matcher m = format.matcher(expr);
+        if (!m.matches()) {
+            return "ERROR: Malformed column expression: " + expr;
+        }
+        String column = m.group(1);
+        String arithmetic = m.group(2);
+        String operand = m.group(3);
 
         if (!arithmetic.matches("[-+/*]")) {
             return "ERROR: Malformed column expression :" + expr;
@@ -565,9 +569,11 @@ public class Parser {
         } else if (t.containsColumn(operand)) {
             Class type1 = t.getColumnTypes().get(column);
             Class type2 = t.getColumnTypes().get(operand);
-            if (!compatibleTypes(type1, type2) || !arithmetic.equals("+")) {
+            if (!compatibleTypes(type1, type2)) {
                 return "ERROR: Incompatible types: " +
                         typeToString(type1) + " and " + typeToString(type2);
+            } else if (type1 == String.class && !arithmetic.equals("+")) {
+                return "ERROR: Malformed column expression: " + expr;
             } else {
                 return " ";
             }
@@ -893,7 +899,7 @@ public class Parser {
         if (containsTable(name)) {
             return "";
         } else {
-            return "ERROR: No such table" + name;
+            return "ERROR: No such table: " + name;
         }
     }
 }

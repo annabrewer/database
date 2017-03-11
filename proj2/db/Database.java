@@ -50,10 +50,8 @@ public class Database {
     public static void main(String[] args) {
         Database db = new Database();
 
-        System.out.println(db.transact("create table t (x int, y int)"));
-        System.out.println(db.transact("insert into t values 5, 6"));
-        System.out.println(db.transact("insert into t values 5, 7"));
-        System.out.println(db.transact("select * from t where x == 5 and y < 7"));
+        System.out.println(db.transact("load records"));
+        System.out.println(db.transact("print records"));
     }
 
     public String transact(String query) {
@@ -81,7 +79,7 @@ public class Database {
         } else if ((m = SELECT_CMD.matcher(query)).matches()) {
             return select(m.group(1));
         } else {
-            return "Malformed query: " + query;
+            return "ERROR: Malformed query: " + query;
         }
     }
 
