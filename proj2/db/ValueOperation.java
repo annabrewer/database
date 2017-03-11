@@ -28,9 +28,20 @@ public abstract class ValueOperation extends NumberFunction {
         } else {
             String s1 = v1.getString();
             String s2 = v2.getString();
-            StringBuilder item = new StringBuilder(s1.substring(0, s1.length() - 1));
-            item.append(s2.substring(1));
-            return new Value(item.toString());
+            if (v1.getType() == DataType.NOVALUE && v2.getType() == v1.getType()) {
+                return new Value(DataType.NOVALUE, String.class);
+            }
+            if (s1.length() == 0 && s2.length() == 0) {
+                return new Value("''");
+            } else if (s1.length() == 0) {
+                return new Value(s2);
+            } else if (s2.length() == 0) {
+                return new Value(s1);
+            } else {
+                StringBuilder item = new StringBuilder(s1.substring(0, s1.length() - 1));
+                item.append(s2.substring(1));
+                return new Value(item.toString());
+            }
         }
     }
 

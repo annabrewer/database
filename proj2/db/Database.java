@@ -50,11 +50,12 @@ public class Database {
     public static void main(String[] args) {
         Database db = new Database();
 
-        System.out.println(db.transact("create table t (x int, y float, z string)"));
+        System.out.println(db.transact("create table t (x string, y float, z string)"));
         System.out.println(db.transact("insert into t values NOVALUE, 5.4, 'random'"));
-        System.out.println(db.transact("insert into t values 454, NOVALUE, 'random'"));
-        System.out.println(db.transact("insert into t values 98943243, 4324.43, NOVALUE"));
+        System.out.println(db.transact("insert into t values NOVALUE, NOVALUE, 'random'"));
+        System.out.println(db.transact("insert into t values NOVALUE, 4324.43, NOVALUE"));
         System.out.println(db.transact("print t"));
+        System.out.println(db.transact("select x + z as z from t"));
     }
 
     public String transact(String query) {
