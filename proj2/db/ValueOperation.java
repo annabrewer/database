@@ -36,8 +36,10 @@ public abstract class ValueOperation extends NumberFunction {
             }
             return new Value(item);
         } else if (result == typeString) {
-            StringBuilder item = new StringBuilder(v1.getString());
-            item.append(v2.getString());
+            String s1 = v1.getString();
+            String s2 = v2.getString();
+            StringBuilder item = new StringBuilder(s1.substring(0, s1.length() - 1));
+            item.append(s2.substring(1));
             return new Value(item.toString());
         } else {
             return specialValues(v1, v2);
