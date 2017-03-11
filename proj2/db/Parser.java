@@ -337,7 +337,7 @@ public class Parser {
         }
      }
 
-     private Value getValue(String value) {
+     public Value getValue(String value) {
         String i = "-?\\d+";
         String f = "-?(\\.\\d+|\\d+\\.\\d+|\\d+\\.)";
         String s = "'+[^\\t\\n,'\"]+'";
@@ -878,8 +878,8 @@ public class Parser {
         Iterator<String> names = columnNames.iterator();
         LinkedHashMap<String, Class> columnTypes = t.getColumnTypes();
         for (String value : listValues) {
+            Class type = columnTypes.get(names.next());
             if (!value.equals("NOVALUE")) {
-                Class type = columnTypes.get(names.next());
                 Value v = getValue(value);
                 if (type != v.getItemClass()) {
                     return "ERROR: Row does not match table";

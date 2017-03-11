@@ -50,8 +50,11 @@ public class Database {
     public static void main(String[] args) {
         Database db = new Database();
 
-        System.out.println(db.transact("load records"));
-        System.out.println(db.transact("print records"));
+        System.out.println(db.transact("create table t (x int, y float, z string)"));
+        System.out.println(db.transact("insert into t values NOVALUE, 5.4, 'random'"));
+        System.out.println(db.transact("insert into t values 454, NOVALUE, 'random'"));
+        System.out.println(db.transact("insert into t values 98943243, 4324.43, NOVALUE"));
+        System.out.println(db.transact("print t"));
     }
 
     public String transact(String query) {
@@ -200,7 +203,7 @@ public class Database {
                     ArrayList<Value> rowValues = new ArrayList<>();
                     String[] values = row.split(",");
                     for (String v : values) {
-                        Value val = toValue(v);
+                        Value val = parser.getValue(v);
                         rowValues.add(val);
                     }
                     Row newRow = new Row(loadedTable.getColumnNames(), rowValues);
@@ -217,19 +220,6 @@ public class Database {
             } catch (IOException e) {
                 return "ERROR: Could not read file: " + name;
             }
-        }
-    }
-
-    public static Value toValue(String s) {
-        if (s.matches("[0-9]+")) {
-            if (s.contains(".")) {
-                float f = Float.parseFloat(s);
-                return new Value(f);
-            }
-            int i = Integer.parseInt(s);
-            return new Value(i);
-        } else {
-            return new Value(s);
         }
     }
 
