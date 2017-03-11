@@ -348,8 +348,7 @@ public class Parser {
             float item = Float.parseFloat(value);
             return new Value(item);
         } else {
-            String item = value.split("'")[1];
-            return new Value(item);
+            return new Value(value);
         }
      }
 
