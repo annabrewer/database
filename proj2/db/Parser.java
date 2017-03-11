@@ -780,10 +780,14 @@ public class Parser {
      */
 
     public String storeTable(String name) {
-        try (PrintWriter out = new PrintWriter(name + ".tbl")) {
-            out.println(tables.get(name).toString());
+        try {
+            String n = tables.get(name).toString();
+            PrintWriter out = new PrintWriter(name + ".txt");
+            out.println(n);
         } catch (IOException e) {
-            return "ERROR: Can't read file " + name;
+            return "Error";
+        } catch (NullPointerException e) {
+            return "Error: table does not exist";
         }
         return "";
     }
