@@ -70,7 +70,10 @@ public abstract class ValueOperation extends NumberFunction {
             return typeInt;
         } else if (t1 == typeString && t2 == typeString) {
             return typeString;
-        } else {
+        } else if (t1 == typeNoValue && t2 == typeNoValue) {
+            return typeNoValue;
+        }
+        else {
             // If at least one of the values is NOVALUE
             Class c1 = v1.getItemClass();
             Class c2 = v2.getItemClass();
