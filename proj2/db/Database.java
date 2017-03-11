@@ -184,6 +184,10 @@ public class Database {
             try {
                 FileReader reader = new FileReader(name + ".tbl");
                 BufferedReader tableFileReader = new BufferedReader(reader);
+                if (tableFileReader.readLine() == null) {
+                    tableFileReader.close();
+                    return "ERROR: Empty TBL file.";
+                }
                 String[] columns = tableFileReader.readLine().split(",");
                 if (!parser.validateColumns(columns).equals(" ")) {
                     tableFileReader.close();
@@ -199,9 +203,10 @@ public class Database {
 
                 String row;
                 while ((row = tableFileReader.readLine()) != null) {
-                    if (!parser.checkValues(name, row).equals(" ")) {
+                    String result;
+                    if (!(result = parser.checkValues(name, row)).equals(" ")) {
                         tableFileReader.close();
-                        return "ERROR: TBL file formatted incorrectly.";
+                        return result;
                     }
                     ArrayList<Value> rowValues = new ArrayList<>();
                     String[] values = row.split(",");
