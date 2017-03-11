@@ -486,7 +486,7 @@ public class Parser {
         if (colExpr.equals("*")) {
             return " ";
         }
-        String[] columnExpressions = colExpr.split("\\s*,+\\s+");
+        String[] columnExpressions = colExpr.split("\\s*,+\\s*");
         for (String expression : columnExpressions) {
             String result;
             if (!(result = validColumnExpression(expression, t)).equals(" ")) {
