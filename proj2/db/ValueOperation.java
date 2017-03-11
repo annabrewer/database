@@ -17,47 +17,20 @@ public abstract class ValueOperation extends NumberFunction {
     public Value apply(Value v1, Value v2) {
         DataType t1 = v1.getType();
         DataType t2 = v2.getType();
-        if (t1 == DataType.NOVALUE || t2 == DataType.NOVALUE) {
-            return specialValues(v1, v2);
-        }
-        DataType result = getResultingType(t1, t2);
+        DataType result = getResultingType(v1, v2);
 
         if (result == typeFloat) {
             float item = (float) func(v1.getNum(), v2.getNum());
             return new Value(item);
         } else if (result == typeInt) {
-            int item;
-            if (t1 == typeNoValue) {
-                item = (int) func(0, v2.getNum());
-            } else if (t2 == typeNoValue) {
-                item = (int) func(v1.getNum(), 0);
-            } else {
-                item = (int) func(v1.getNum(), v2.getNum());
-            }
+            int item = (int) func(v1.getNum(), v2.getNum());
             return new Value(item);
-        } else if (result == typeString) {
+        } else {
             String s1 = v1.getString();
             String s2 = v2.getString();
             StringBuilder item = new StringBuilder(s1.substring(0, s1.length() - 1));
             item.append(s2.substring(1));
             return new Value(item.toString());
-        } else {
-            return specialValues(v1, v2);
-        }
-    }
-
-    // Special handling for values that are NaN or NOVALUE
-    private Value specialValues(Value v1, Value v2) {
-        Class c1 = v1.getItemClass();
-        Class c2 = v2.getItemClass();
-        DataType result = getResultingType(v1.getType(), v2.getType());
-
-        if (c1 == Integer.class && c2 == c1) {
-            return new Value(result, Integer.class);
-        } else if (c1 == Float.class || c2 == Float.class) {
-            return new Value(result, Float.class);
-        } else {
-            return new Value(result, String.class);
         }
     }
 
@@ -72,7 +45,9 @@ public abstract class ValueOperation extends NumberFunction {
        Incorrect arguments like providing a string and a float are handled
        during parsing, so assumes input is always correct.
      */
-    private DataType getResultingType(DataType t1, DataType t2) {
+    private DataType getResultingType(Value v1, Value v2) {
+        DataType t1 = v1.getType();
+        DataType t2 = v2.getType();
         if (t1 == typeNaN || t2 == typeNaN) {
             // Operations with NaN result in NaN
             return typeNaN;
@@ -84,12 +59,17 @@ public abstract class ValueOperation extends NumberFunction {
             return typeInt;
         } else if (t1 == typeString && t2 == typeString) {
             return typeString;
-        } else if (t1 == typeNoValue && t2 != typeNoValue) {
-            return t2;
-        } else if (t1 != typeNoValue && t2 == typeNoValue) {
-            return t1;
         } else {
-            return typeNoValue;
+            // If at least one of the values is NOVALUE
+            Class c1 = v1.getItemClass();
+            Class c2 = v2.getItemClass();
+            if (c1 == Integer.class && c1 == c2) {
+                return typeInt;
+            } else if (c1 == Float.class || c2 == Float.class) {
+                return typeFloat;
+            } else {
+                return typeString;
+            }
         }
     }
 }
