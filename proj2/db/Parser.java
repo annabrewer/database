@@ -33,11 +33,6 @@ public class Parser {
         tables = tbls;
     }
 
-    public static void main(String[] args) {
-
-    }
-
-
     /* Parses a command for creating a table. Determines if the create
      * command is either a create new or create from selecting command.
      * If the command matches neither, returns an error message.
@@ -88,8 +83,12 @@ public class Parser {
      * If the command is correct, returns an empty string
      */
     private String createFromSelect(String name, String colExpr, String tbls, String conds) {
-        Table joined = join(tbls);
         String result;
+        if (!(result = checkTables(tbls)).equals(" ")) {
+            return "ERROR: No such table: " + missingTable(tbls);
+        }
+
+        Table joined = join(tbls);
         if (!(result = checkTableName(name)).equals(" ")) {
             return result;
         } else if (!(result = checkTables(tbls)).equals(" ")) {
@@ -100,7 +99,8 @@ public class Parser {
             if (conds == null) {
                 return "";
             } else {
-                if (!(result = checkConditionalExpressions(joined, conds)).equals(" ")) {
+                Table selected = tableFromSelect("dummy", colExpr, tbls);
+                if (!(result = checkConditionalExpressions(selected, conds)).equals(" ")) {
                     return result;
                 } else {
                     return "";
@@ -166,14 +166,7 @@ public class Parser {
         if (colExpr.equals("*")) {
             t = join(tbls);
         } else {
-            String[] cols = colExpr.split(COMMA);
-            ArrayList<String> selectedColumns = new ArrayList<>();
-
-            for (String c : cols) {
-                selectedColumns.add(c);
-            }
-
-            t = join(tbls).select(selectedColumns, "dummy");
+            t = tableFromSelect("dummy", colExpr, tbls);
         }
 
         Table newTable = evaluateConditionalExpressions(conds, t);
@@ -425,7 +418,7 @@ public class Parser {
         String[] separatedConditionals = conds.split(AND);
         String result;
         for (String conditionals : separatedConditionals) {
-            if (!(result = checkConditionalExpression(tbl, conds)).equals(" ")) {
+            if (!(result = checkConditionalExpression(tbl, conditionals)).equals(" ")) {
                 return result;
             }
         }
