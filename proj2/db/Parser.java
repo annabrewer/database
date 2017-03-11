@@ -219,10 +219,12 @@ public class Parser {
      * Returns the table resulting from this conditional statement.
      */
     private Table evaluateConditionalExpression(String cond, Table tbl) {
-        String[] parts = cond.split(" ");
-        String column = parts[0];
-        Conditionals conditional = getConditional(parts[1]);
-        String operand = parts[2];
+        Pattern format = Pattern.compile("(\\w+)\\s+([=<>!]+)+\\s+(\\S+\\s*\\S+)+");
+        Matcher m = format.matcher(cond);
+        m.matches();
+        String column = m.group(1);
+        Conditionals conditional = getConditional(m.group(2));
+        String operand = m.group(3);
         if (operand.matches("-?(\\.\\d+|\\d+\\.\\d+|\\d+\\.)|" +
                                    "-?\\d+|'+[^\\t\\n,'\"]+'")) {
             return tbl.select(column, conditional, getValue(operand), "dummy");
@@ -286,7 +288,7 @@ public class Parser {
      *     - or <column>
      */
     private Column evaluateColumnExpression(String expr, Table tbl) {
-        Pattern format = Pattern.compile("(\\w+)\\s*+([-+/*])\\s*(\\S+)");
+        Pattern format = Pattern.compile("(\\w+)\\s*+([-+/*])\\s*(\\S+\\s*\\S+)");
         Matcher m = format.matcher(expr);
         Class type;
         ArrayList<Value> values;
@@ -411,7 +413,7 @@ public class Parser {
      *     - if the second operand isn't a column, then it must be a valid literal
      */
     private String checkConditionalExpressions(Table tbl, String conds) {
-        String validConditional = "\\w+\\s+[<>=!]+\\s+\\S+?(\\s+and\\s+\\w+\\s+[<>=!]+\\s+\\S+\\s*)*";
+        String validConditional = "\\w+\\s+[=<>!]+\\s+(\\S+\\s*\\S+)?(\\s+and+\\s+\\w+\\s+[<>=!]+\\s+\\S+)*";
         if (!conds.matches(validConditional)) {
             return "ERROR: Malformed conditional: " + conds;
         }
@@ -436,16 +438,20 @@ public class Parser {
      * if it's valid.
      */
     private String checkConditionalExpression(Table tbl, String cond) {
-        String[] conditionalParts = cond.split("\\s+");
-        String column = conditionalParts[0];
-        String condition = conditionalParts[1];
-        String operand = conditionalParts[2];
+        Pattern format = Pattern.compile("(\\S+)\\s+([=<>!]+)+\\s+(\\S+\\s*\\S+)+");
+        Matcher m = format.matcher(cond);
+        if (!m.matches()) {
+            return "ERROR: Malformed conditional: " + cond;
+        }
+        String column = m.group(1);
+        String condition = m.group(2);
+        String operand = m.group(3);
         if (!tbl.containsColumn(column)) {
             return "ERROR: No such column with name: " + column;
         } else if (!condition.matches("<|>|<=|>=|==|!=")) {
             return "ERROR: Malformed conditional: " + cond;
         } else if (!tbl.containsColumn(operand) && !validLiteral(operand)) {
-            return "ERROR: Malformed column expression: " + cond;
+            return "ERROR: Malformed conditional: " + cond;
         } else if (tbl.containsColumn(operand)) {
             Class type1 = tbl.getColumnTypes().get(column);
             Class type2 = tbl.getColumnTypes().get(operand);

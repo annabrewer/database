@@ -47,14 +47,6 @@ public class Database {
         parser = new Parser(tables);
     }
 
-    public static void main(String[] args) {
-        Database db = new Database();
-
-        System.out.println(db.transact("load records"));
-        System.out.println(db.transact("create table t0 as select City,Season,Wins/Losses as Ratio from teams,records where Ratio < 1"));
-        System.out.println(db.transact("print t0"));
-    }
-
     public String transact(String query) {
         String result;
         if (!(result = eval(query)).equals("")) {
@@ -186,7 +178,7 @@ public class Database {
     }
 
     private String loadTable(String name) {
-        if (!name.matches("\\D+\\S+")) {
+        if (!name.matches("\\D\\S*")) {
             return "ERROR: No such table: " + name;
         } else {
             try {
