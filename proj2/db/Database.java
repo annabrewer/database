@@ -191,7 +191,7 @@ public class Database {
                 String[] columns = tableFileReader.readLine().split(",");
                 if (!parser.validateColumns(columns).equals(" ")) {
                     tableFileReader.close();
-                    return "ERROR: TBL file formatted incorrectly.";
+                    return parser.validateColumns(columns);
                 }
                 LinkedHashMap<String, Class> columnInfo = parser.getColumns(columns);
                 Table loadedTable = new Table(name, columnInfo);
@@ -228,6 +228,17 @@ public class Database {
 
     private String storeTable(String name) {
         return parser.storeTable(name);
+    }
+
+    public static void main(String[] args) {
+        Database db = new Database();
+
+        System.out.println(db.transact("create table t (x int, y int)"));
+        System.out.println(db.transact("insert into t values 1, 2"));
+        System.out.println(db.transact("insert into t values 3, 4"));
+        System.out.println(db.transact("insert into t values 5, 6"));
+        System.out.println(db.transact("insert into t values NOVALUE, NOVALUE"));
+        System.out.println(db.transact("create table s as select x / 0 as bob from t"));
     }
 
 }

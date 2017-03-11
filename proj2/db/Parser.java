@@ -219,7 +219,7 @@ public class Parser {
      * Returns the table resulting from this conditional statement.
      */
     private Table evaluateConditionalExpression(String cond, Table tbl) {
-        Pattern format = Pattern.compile("(\\w+)\\s*([=<>!]+)+\\s*((\\S+\\s*\\S+)|(\\d+))");
+        Pattern format = Pattern.compile("(\\S+)\\s*([=<>!]+)+\\s*((\\S+\\s*\\S*)+)");
         Matcher m = format.matcher(cond);
         m.matches();
         String column = m.group(1);
@@ -524,7 +524,7 @@ public class Parser {
      *     - the provided name is a valid name
      */
     private String validArithmetic(String colExpr, Table t) {
-        String[] parts = colExpr.split("\\sas\\s"); // [<expression>, <name>]
+        String[] parts = colExpr.split("\\s+as\\s+"); // [<expression>, <name>]
         String arithmetic = parts[0];
         String name = parts[1];
 
@@ -578,10 +578,13 @@ public class Parser {
         } else if (validLiteral(operand)) {
             Class type1 = t.getColumnTypes().get(column);
             Class type2 = getType(getValueType(operand));
-            if (!compatibleTypes(type1, type2) || !arithmetic.equals("+")) {
+            if (!compatibleTypes(type1, type2)) {
                 return "ERROR: Incompatible types: " +
                         typeToString(type1) + " and " + typeToString(type2);
-            } else {
+            } else if (type1 == String.class && !arithmetic.equals("+")) {
+                return "ERROR: Incompatible string operation" + arithmetic;
+            }
+            else {
                 return " ";
             }
         } else {
@@ -665,7 +668,9 @@ public class Parser {
         return cols;
     }
 
-    // Returns the corresponding class if the supplied type is int, float, or string.
+    /* Returns the corresponding class if the supplied type is int, float, or string.
+     * If the value is Nan or NOVALUE, then it returns the type of the column it's in.
+     */
     private static Class getType(String type) {
         if (type.equals("int")) {
             return Integer.class;
@@ -716,7 +721,7 @@ public class Parser {
     public String validateColumns(String[] columns) {
         String result;
         for (String col : columns) {
-            String[] columnInfo = col.split("\\s*");
+            String[] columnInfo = col.split("\\s+");
             if (!(result = validColumn(columnInfo)).equals(" ")) {
                 return result;
             }

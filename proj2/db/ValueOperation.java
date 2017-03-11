@@ -19,6 +19,9 @@ public abstract class ValueOperation extends NumberFunction {
         DataType t2 = v2.getType();
         DataType result = getResultingType(v1, v2);
 
+        if (result == typeNaN) {
+            return new Value(DataType.NaN, getSpecialValueClass(v1, v2));
+        }
         if (result == typeFloat) {
             float item = (float) func(v1.getNum(), v2.getNum());
             return new Value(item);
@@ -42,6 +45,19 @@ public abstract class ValueOperation extends NumberFunction {
                 item.append(s2.substring(1));
                 return new Value(item.toString());
             }
+        }
+    }
+
+    /* Gets the class of an operation between values that are special
+     * values.
+     */
+    private Class getSpecialValueClass(Value v1, Value v2) {
+        Class t1 = v1.getItemClass();
+        Class t2 = v2.getItemClass();
+        if (t1 == Integer.class && t2 == t1) {
+            return Integer.class;
+        } else {
+            return Float.class;
         }
     }
 
