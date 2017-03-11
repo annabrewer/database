@@ -207,6 +207,10 @@ public class Database {
                 String row;
                 while ((row = tableFileReader.readLine()) != null) {
                     String r;
+                    if (row.matches("\\n|\\s*")) {
+                        tableFileReader.close();
+                        return "";
+                    }
                     if (!(r = parser.checkValues(name, row)).equals(" ")) {
                         tableFileReader.close();
                         return r;
