@@ -438,7 +438,7 @@ public class Parser {
      * if it's valid.
      */
     private String checkConditionalExpression(Table tbl, String cond) {
-        Pattern format = Pattern.compile("(\\S+)\\s+([=<>!]+)\\s*(\\S+\\s*)+");
+        Pattern format = Pattern.compile("(\\S+)\\s+([=<>!]+)\\s*(\\S+\\s*\\S*)+");
         Matcher m = format.matcher(cond);
         if (!m.matches()) {
             return "ERROR: Malformed conditional: " + cond;
@@ -598,7 +598,7 @@ public class Parser {
     private boolean validLiteral(String literal) {
         String validFloat = "-?(\\.\\d+|\\d+\\.\\d+|\\d+\\.)";
         String validInt = "-?\\d+";
-        String validString = "'+[^\\t\\n,'\"]+'";
+        String validString = "'+.*'";
 
         if (literal.matches(validFloat)) {
             return true;
@@ -863,7 +863,7 @@ public class Parser {
         String[] listValues = values.split("\\s*,\\s*");
         for (String value : listValues) {
             if (!validLiteral(value)) {
-                return "ERROR: Invalid data entry" + value;
+                return "ERROR: Invalid data entry " + value;
             }
         }
         Table t = tables.get(tbl);
