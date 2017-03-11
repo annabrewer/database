@@ -716,7 +716,7 @@ public class Parser {
     public String validateColumns(String[] columns) {
         String result;
         for (String col : columns) {
-            String[] columnInfo = col.split("\\s+");
+            String[] columnInfo = col.split("\\s*");
             if (!(result = validColumn(columnInfo)).equals(" ")) {
                 return result;
             }
