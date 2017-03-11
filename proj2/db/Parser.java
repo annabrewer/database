@@ -219,7 +219,7 @@ public class Parser {
      * Returns the table resulting from this conditional statement.
      */
     private Table evaluateConditionalExpression(String cond, Table tbl) {
-        Pattern format = Pattern.compile("(\\w+)\\s+([=<>!]+)+\\s+(\\S+\\s*\\S+)+");
+        Pattern format = Pattern.compile("(\\w+)\\s*([=<>!]+)+\\s*((\\S+\\s*\\S+)|(\\d+))");
         Matcher m = format.matcher(cond);
         m.matches();
         String column = m.group(1);
@@ -288,7 +288,7 @@ public class Parser {
      *     - or <column>
      */
     private Column evaluateColumnExpression(String expr, Table tbl) {
-        Pattern format = Pattern.compile("(\\w+)\\s*+([-+/*])\\s*(\\S+\\s*\\S+)");
+        Pattern format = Pattern.compile("(\\w+)\\s*+([-+/*])\\s*((\\S+\\s*\\S+)|(\\d+))");
         Matcher m = format.matcher(expr);
         Class type;
         ArrayList<Value> values;
@@ -413,7 +413,7 @@ public class Parser {
      *     - if the second operand isn't a column, then it must be a valid literal
      */
     private String checkConditionalExpressions(Table tbl, String conds) {
-        String validConditional = "\\w+\\s+[=<>!]+\\s+(\\S+\\s*\\S+)?(\\s+and+\\s+\\w+\\s+[<>=!]+\\s+\\S+)*";
+        String validConditional = "\\S+\\s*[=<>!]+\\s*(\\S+\\s*\\S*)+(\\s+and+\\s+\\w+\\s+[<>=!]+\\s+\\S+)*";
         if (!conds.matches(validConditional)) {
             return "ERROR: Malformed conditional: " + conds;
         }
@@ -438,7 +438,7 @@ public class Parser {
      * if it's valid.
      */
     private String checkConditionalExpression(Table tbl, String cond) {
-        Pattern format = Pattern.compile("(\\S+)\\s+([=<>!]+)+\\s+(\\S+\\s*\\S+)+");
+        Pattern format = Pattern.compile("(\\S+)\\s+([=<>!]+)\\s*(\\S+\\s*)+");
         Matcher m = format.matcher(cond);
         if (!m.matches()) {
             return "ERROR: Malformed conditional: " + cond;
@@ -502,7 +502,7 @@ public class Parser {
      *    - <column name>
      */
     private String validColumnExpression(String colExpr, Table t) {
-        String arithmetic = "\\w+\\s*([+-/*])+\\s*\\S+\\s+as+\\s+\\S+";
+        String arithmetic = "\\S+\\s*([+-/*])+\\s*(\\S+\\s+)*as+\\s+\\S+";
         if (colExpr.matches(arithmetic)) {
             return validArithmetic(colExpr, t);
         } else {
