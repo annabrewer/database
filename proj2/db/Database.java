@@ -196,11 +196,24 @@ public class Database {
                 FileReader reader = new FileReader(name + ".tbl");
                 BufferedReader tableFileReader = new BufferedReader(reader);
                 String[] columns = tableFileReader.readLine().split(",");
+                if (!parser.validateColumns(columns).equals(" ")) {
+                    tableFileReader.close();
+                    return "ERROR: TBL file formatted incorrectly.";
+                }
                 LinkedHashMap<String, Class> columnInfo = parser.getColumns(columns);
                 Table loadedTable = new Table(name, columnInfo);
+                if (tables.containsKey(name)) {
+                    tables.replace(name, loadedTable);
+                } else {
+                    tables.put(name, loadedTable);
+                }
 
                 String row;
                 while ((row = tableFileReader.readLine()) != null) {
+                    if (!parser.checkValues(name, row).equals(" ")) {
+                        tableFileReader.close();
+                        return "ERROR: TBL file formatted incorrectly.";
+                    }
                     ArrayList<Value> rowValues = new ArrayList<>();
                     String[] values = row.split(",");
                     for (String v : values) {
@@ -209,11 +222,6 @@ public class Database {
                     }
                     Row newRow = new Row(loadedTable.getColumnNames(), rowValues);
                     loadedTable.insertValues(newRow);
-                }
-                if (tables.containsKey(name)) {
-                    tables.replace(name, loadedTable);
-                } else {
-                    tables.put(name, loadedTable);
                 }
                 return "";
             } catch (FileNotFoundException e) {

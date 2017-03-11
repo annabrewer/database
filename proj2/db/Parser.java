@@ -654,18 +654,6 @@ public class Parser {
         }
     }
 
-    private String[] listConditions(String conds) {
-        return conds.split(AND);
-    }
-
-    private String[] listColumnExpressions(String colExpr) {
-        return colExpr.split(COMMA);
-    }
-
-    private String[] splitOperation(String op) {
-        return op.split("\\s");
-    }
-
     /* Takes in a list of columns that's in the format ["name type", "name type"..]
      * and puts it in a LinkedHashMap mapping each column name to its specified type.
      */
@@ -726,7 +714,7 @@ public class Parser {
     /* Columns should be in the format ["name type", "name type",....]. Calls
      * validates each column in the array by calling validColumn on each element.
      */
-    private String validateColumns(String[] columns) {
+    public String validateColumns(String[] columns) {
         String result;
         for (String col : columns) {
             String[] columnInfo = col.split("\\s+");
@@ -782,12 +770,13 @@ public class Parser {
     public String storeTable(String name) {
         try {
             String n = tables.get(name).toString();
-            PrintWriter out = new PrintWriter(name + ".txt");
+            PrintWriter out = new PrintWriter(name + ".tbl");
             out.println(n);
+            out.close();
         } catch (IOException e) {
-            return "Error";
+            return "ERROR: Could not read file.";
         } catch (NullPointerException e) {
-            return "Error: table does not exist";
+            return "ERROR: Table does not exist.";
         }
         return "";
     }
@@ -866,7 +855,7 @@ public class Parser {
      * The values are correct if their order matches the order of the
      * column types and if they're all valid literals.
      */
-    private String checkValues(String tbl, String values) {
+    public String checkValues(String tbl, String values) {
         String[] listValues = values.split("\\s*,\\s*");
         for (String value : listValues) {
             if (!validLiteral(value)) {
