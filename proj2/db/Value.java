@@ -20,7 +20,7 @@ public class Value implements Comparable<Value>{
      */
     private int integer;
     private float aFloat;
-    private String string;
+    private String string = "''";
 
     // Create a value that stores an integer
     public Value(int i) {
@@ -54,9 +54,6 @@ public class Value implements Comparable<Value>{
     public Value(DataType t, Class c) {
         type = t;
         itemClass = c;
-        if (itemClass == String.class) {
-            string = "";
-        }
     }
 
     private int getInteger() {
