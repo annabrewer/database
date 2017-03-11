@@ -219,7 +219,7 @@ public class Parser {
      * Returns the table resulting from this conditional statement.
      */
     private Table evaluateConditionalExpression(String cond, Table tbl) {
-        Pattern format = Pattern.compile("(\\w+)\\s+([=<>!]+)+\\s+(\\S+\\s*\\S+)+");
+        Pattern format = Pattern.compile("(\\S+)\\s*([=<>!]+)+\\s*((\\S+\\s*\\S*)+)");
         Matcher m = format.matcher(cond);
         m.matches();
         String column = m.group(1);
@@ -288,7 +288,7 @@ public class Parser {
      *     - or <column>
      */
     private Column evaluateColumnExpression(String expr, Table tbl) {
-        Pattern format = Pattern.compile("(\\w+)\\s*+([-+/*])\\s*(\\S+\\s*\\S+)");
+        Pattern format = Pattern.compile("(\\w+)\\s*+([-+/*])\\s*((\\S+\\s*\\S*)+|(\\d+))");
         Matcher m = format.matcher(expr);
         Class type;
         ArrayList<Value> values;
@@ -413,7 +413,7 @@ public class Parser {
      *     - if the second operand isn't a column, then it must be a valid literal
      */
     private String checkConditionalExpressions(Table tbl, String conds) {
-        String validConditional = "\\w+\\s+[=<>!]+\\s+(\\S+\\s*\\S+)?(\\s+and+\\s+\\w+\\s+[<>=!]+\\s+\\S+)*";
+        String validConditional = "\\S+\\s*[=<>!]+\\s*(\\S+\\s*\\S*)+(\\s+and+\\s+\\w+\\s+[<>=!]+\\s+\\S+)*";
         if (!conds.matches(validConditional)) {
             return "ERROR: Malformed conditional: " + conds;
         }
@@ -438,7 +438,7 @@ public class Parser {
      * if it's valid.
      */
     private String checkConditionalExpression(Table tbl, String cond) {
-        Pattern format = Pattern.compile("(\\S+)\\s+([=<>!]+)+\\s+(\\S+\\s*\\S+)+");
+        Pattern format = Pattern.compile("(\\S+)\\s+([=<>!]+)\\s*(\\S+\\s*\\S*)+");
         Matcher m = format.matcher(cond);
         if (!m.matches()) {
             return "ERROR: Malformed conditional: " + cond;
@@ -502,7 +502,7 @@ public class Parser {
      *    - <column name>
      */
     private String validColumnExpression(String colExpr, Table t) {
-        String arithmetic = "\\w+\\s*([+-/*])+\\s*\\S+\\s+as+\\s+\\S+";
+        String arithmetic = "\\S+\\s*([+-/*])+\\s*(\\S+\\s+)*as+\\s+\\S+";
         if (colExpr.matches(arithmetic)) {
             return validArithmetic(colExpr, t);
         } else {
@@ -524,7 +524,7 @@ public class Parser {
      *     - the provided name is a valid name
      */
     private String validArithmetic(String colExpr, Table t) {
-        String[] parts = colExpr.split("\\sas\\s"); // [<expression>, <name>]
+        String[] parts = colExpr.split("\\s+as\\s+"); // [<expression>, <name>]
         String arithmetic = parts[0];
         String name = parts[1];
 
@@ -578,10 +578,13 @@ public class Parser {
         } else if (validLiteral(operand)) {
             Class type1 = t.getColumnTypes().get(column);
             Class type2 = getType(getValueType(operand));
-            if (!compatibleTypes(type1, type2) || !arithmetic.equals("+")) {
+            if (!compatibleTypes(type1, type2)) {
                 return "ERROR: Incompatible types: " +
                         typeToString(type1) + " and " + typeToString(type2);
-            } else {
+            } else if (type1 == String.class && !arithmetic.equals("+")) {
+                return "ERROR: Incompatible string operation" + arithmetic;
+            }
+            else {
                 return " ";
             }
         } else {
@@ -595,7 +598,7 @@ public class Parser {
     private boolean validLiteral(String literal) {
         String validFloat = "-?(\\.\\d+|\\d+\\.\\d+|\\d+\\.)";
         String validInt = "-?\\d+";
-        String validString = "'+[^\\t\\n,'\"]+'";
+        String validString = "'+.*'";
 
         if (literal.matches(validFloat)) {
             return true;
@@ -665,7 +668,9 @@ public class Parser {
         return cols;
     }
 
-    // Returns the corresponding class if the supplied type is int, float, or string.
+    /* Returns the corresponding class if the supplied type is int, float, or string.
+     * If the value is Nan or NOVALUE, then it returns the type of the column it's in.
+     */
     private static Class getType(String type) {
         if (type.equals("int")) {
             return Integer.class;
@@ -858,7 +863,7 @@ public class Parser {
         String[] listValues = values.split("\\s*,\\s*");
         for (String value : listValues) {
             if (!validLiteral(value)) {
-                return "ERROR: Invalid data entry" + value;
+                return "ERROR: Invalid data entry " + value;
             }
         }
         Table t = tables.get(tbl);

@@ -19,16 +19,25 @@ public abstract class ValueOperation extends NumberFunction {
         DataType t2 = v2.getType();
         DataType result = getResultingType(v1, v2);
 
+        if (result == typeNaN) {
+            return new Value(DataType.NaN, getSpecialValueClass(v1, v2));
+        }
         if (result == typeFloat) {
+            if (t1 == typeNoValue && t2 == typeNoValue) {
+                return new Value(typeNoValue, Float.class);
+            }
             float item = (float) func(v1.getNum(), v2.getNum());
             return new Value(item);
         } else if (result == typeInt) {
+            if (t1 == typeNoValue && t2 == typeNoValue) {
+                return new Value(typeNoValue, Float.class);
+            }
             int item = (int) func(v1.getNum(), v2.getNum());
             return new Value(item);
         } else {
             String s1 = v1.getString();
             String s2 = v2.getString();
-            if (v1.getType() == DataType.NOVALUE && v2.getType() == v1.getType()) {
+            if (v1.getType() == typeNoValue && v2.getType() == typeNoValue) {
                 return new Value(DataType.NOVALUE, String.class);
             }
             if (s1.length() == 0 && s2.length() == 0) {
@@ -42,6 +51,19 @@ public abstract class ValueOperation extends NumberFunction {
                 item.append(s2.substring(1));
                 return new Value(item.toString());
             }
+        }
+    }
+
+    /* Gets the class of an operation between values that are special
+     * values.
+     */
+    private Class getSpecialValueClass(Value v1, Value v2) {
+        Class t1 = v1.getItemClass();
+        Class t2 = v2.getItemClass();
+        if (t1 == Integer.class && t2 == t1) {
+            return Integer.class;
+        } else {
+            return Float.class;
         }
     }
 
